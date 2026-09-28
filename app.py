@@ -12,6 +12,9 @@ from datetime import date
 # Import our database helper functions
 from src.database import get_active_criteria, get_total_weight
 
+# Import PDF extraction functions
+from src.pdf_tool import extract_text_from_uploaded_file, get_pdf_info, validate_pdf
+
 # =============================================================================
 # PAGE CONFIGURATION
 # =============================================================================
@@ -169,12 +172,33 @@ def main():
 
         # Validation for this supplier
         validation_errors = []
+        extracted_text = None
+        pdf_info = None
 
         if not supplier_name:
             validation_errors.append("Supplier name is required")
 
         if not pdf_file:
             validation_errors.append("PDF file is required")
+        else:
+            # Validate and extract text from PDF
+            try:
+                is_valid, validation_message = validate_pdf(pdf_file)
+                pdf_file.seek(0)  # Reset file pointer after validation
+
+                if not is_valid:
+                    validation_errors.append(f"PDF issue: {validation_message}")
+                else:
+                    # Get PDF info
+                    pdf_info = get_pdf_info(pdf_file)
+                    pdf_file.seek(0)  # Reset file pointer
+
+                    # Extract text
+                    extracted_text = extract_text_from_uploaded_file(pdf_file)
+                    pdf_file.seek(0)  # Reset for later use
+
+            except Exception as e:
+                validation_errors.append(f"Error reading PDF: {str(e)}")
 
         # Show validation status
         if validation_errors:
@@ -184,12 +208,28 @@ def main():
         else:
             st.success(f"✅ {supplier_name} - Ready for evaluation")
 
+            # Show PDF info
+            if pdf_info:
+                st.caption(f"📄 {pdf_info['page_count']} page(s) | {pdf_info['char_count']:,} characters")
+
+            # Show text preview in an expander
+            if extracted_text:
+                with st.expander(f"👁️ Preview extracted text from {pdf_file.name}", expanded=False):
+                    # Show first 1000 characters as preview
+                    preview_length = 1000
+                    if len(extracted_text) > preview_length:
+                        st.text(extracted_text[:preview_length] + "\n\n... [truncated for preview]")
+                        st.caption(f"Showing {preview_length:,} of {len(extracted_text):,} characters")
+                    else:
+                        st.text(extracted_text)
+
             # Store valid supplier data
             suppliers_data.append({
                 'name': supplier_name,
                 'pdf_file': pdf_file,
                 'submission_date': submission_date.strftime('%Y-%m-%d'),
-                'experience_rating': experience_rating
+                'experience_rating': experience_rating,
+                'extracted_text': extracted_text  # Store extracted text for later use
             })
 
         st.markdown("---")
@@ -204,13 +244,16 @@ def main():
                 'Supplier': s['name'],
                 'Submission Date': s['submission_date'],
                 'Experience Rating': f"{s['experience_rating']}/10",
-                'PDF': s['pdf_file'].name if s['pdf_file'] else 'Not uploaded'
+                'PDF': s['pdf_file'].name if s['pdf_file'] else 'Not uploaded',
+                'Text Extracted': f"{len(s.get('extracted_text', '')):,} chars" if s.get('extracted_text') else 'N/A'
             }
             for s in suppliers_data
         ])
         st.dataframe(summary_df, use_container_width=True, hide_index=True)
 
-        st.info(f"📊 Ready to evaluate **{len(suppliers_data)}** supplier(s) against **{len(criteria)}** criteria")
+        # Calculate total text extracted
+        total_chars = sum(len(s.get('extracted_text', '')) for s in suppliers_data)
+        st.info(f"📊 Ready to evaluate **{len(suppliers_data)}** supplier(s) against **{len(criteria)}** criteria | Total text: **{total_chars:,}** characters")
     else:
         st.warning("Please fill in all required fields for at least one supplier.")
 
