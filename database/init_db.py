@@ -107,6 +107,98 @@ def verify_tables():
     conn.close()
 
 
+def seed_evaluation_criteria():
+    """
+    Seed the database with the 5 initial evaluation criteria.
+
+    The weights MUST total 100% as per project requirements.
+    This function is safe to call multiple times - it only adds
+    criteria if the table is empty.
+    """
+
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # Check if criteria already exist
+    cursor.execute("SELECT COUNT(*) FROM evaluation_criteria")
+    count = cursor.fetchone()[0]
+
+    if count > 0:
+        print(f"\n⚠ Criteria already exist ({count} found). Skipping seed.")
+        conn.close()
+        return
+
+    # Define the 5 evaluation criteria
+    # Format: (name, description, weight, max_score, is_active)
+    criteria = [
+        (
+            "Technical Capability",
+            "Architecture, integrations, scalability, technical fit",
+            30,  # weight (30%)
+            10,  # max_score
+            1    # is_active (1 = True)
+        ),
+        (
+            "Implementation Plan",
+            "Timeline, milestones, staffing, risk plan",
+            20,  # weight (20%)
+            10,  # max_score
+            1    # is_active
+        ),
+        (
+            "Commercial Value",
+            "Pricing clarity, total cost, assumptions",
+            20,  # weight (20%)
+            10,  # max_score
+            1    # is_active
+        ),
+        (
+            "Security & Compliance",
+            "Controls, certifications, privacy, auditability",
+            20,  # weight (20%)
+            10,  # max_score
+            1    # is_active
+        ),
+        (
+            "Support & Experience",
+            "Support model, similar projects, references",
+            10,  # weight (10%)
+            10,  # max_score
+            1    # is_active
+        ),
+    ]
+
+    # Verify weights total 100%
+    total_weight = sum(c[2] for c in criteria)
+    if total_weight != 100:
+        print(f"✗ Error: Weights total {total_weight}%, but must be 100%")
+        conn.close()
+        return
+
+    # Insert all criteria
+    cursor.executemany("""
+        INSERT INTO evaluation_criteria (name, description, weight, max_score, is_active)
+        VALUES (?, ?, ?, ?, ?)
+    """, criteria)
+
+    conn.commit()
+
+    print("\n✓ Seeded 5 evaluation criteria:")
+    print(f"  Total weight: {total_weight}%")
+
+    # Display what was added
+    cursor.execute("SELECT criterion_id, name, weight, max_score FROM evaluation_criteria")
+    rows = cursor.fetchall()
+
+    print("\n  ID | Criterion                  | Weight | Max Score")
+    print("  " + "-" * 55)
+    for row in rows:
+        print(f"  {row[0]:2} | {row[1]:26} | {row[2]:5}% | {row[3]}")
+
+    conn.close()
+
+
 if __name__ == "__main__":
     print("=" * 60)
     print("RFP EVALUATION SYSTEM - DATABASE INITIALIZATION")
@@ -119,7 +211,10 @@ if __name__ == "__main__":
     # Verify creation
     verify_tables()
 
+    # Seed the evaluation criteria
+    seed_evaluation_criteria()
+
     print()
     print("=" * 60)
-    print("Next step: Run this script to seed the evaluation criteria")
+    print("Database setup complete! Ready for application development.")
     print("=" * 60)
