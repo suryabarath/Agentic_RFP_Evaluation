@@ -24,7 +24,7 @@ class Config:
     """
 
     def __init__(self):
-        # OpenAI API Key (required)
+        # OpenAI API Key (required for real mode)
         self.OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
 
         # Model to use (optional, with default)
@@ -35,6 +35,9 @@ class Config:
 
         # Temperature (0.0 = deterministic, 1.0 = creative)
         self.TEMPERATURE: float = float(os.getenv("TEMPERATURE", "0.2"))
+
+        # Mock mode - use simulated responses instead of real API
+        self.USE_MOCK_LLM: bool = os.getenv("USE_MOCK_LLM", "false").lower() == "true"
 
     def validate(self) -> tuple:
         """
@@ -69,13 +72,14 @@ class Config:
         is_valid, error = self.validate()
 
         return {
-            "is_configured": is_valid,
-            "error": error,
+            "is_configured": is_valid or self.USE_MOCK_LLM,  # Mock mode is always "configured"
+            "error": error if not self.USE_MOCK_LLM else None,
             "model": self.OPENAI_MODEL,
             "max_tokens": self.MAX_TOKENS,
             "temperature": self.TEMPERATURE,
             "api_key_set": bool(self.OPENAI_API_KEY and self.OPENAI_API_KEY != "your_openai_api_key_here"),
-            "api_key_preview": self._mask_api_key()
+            "api_key_preview": self._mask_api_key(),
+            "use_mock": self.USE_MOCK_LLM
         }
 
     def _mask_api_key(self) -> str:

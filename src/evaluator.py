@@ -2,11 +2,14 @@
 LLM Evaluator Module
 
 Handles communication with the OpenAI API for evaluating supplier proposals.
+Includes mock mode for development without API credits.
 """
 
 import json
+import random
+import hashlib
 from openai import OpenAI
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from src.config import config
 from src.schemas import SupplierEvaluation
@@ -28,12 +31,18 @@ class LLMEvaluator:
         self._client: Optional[OpenAI] = None
 
     def is_ready(self) -> bool:
-        """Check if the evaluator is properly configured."""
-        return self.config.is_configured()
+        """Check if the evaluator is properly configured (or in mock mode)."""
+        return self.config.USE_MOCK_LLM or self.config.is_configured()
+
+    def is_mock_mode(self) -> bool:
+        """Check if mock mode is enabled."""
+        return self.config.USE_MOCK_LLM
 
     def get_status(self) -> dict:
         """Get the current status of the evaluator."""
-        return self.config.get_status()
+        status = self.config.get_status()
+        status['mode'] = 'MOCK' if self.is_mock_mode() else 'LIVE'
+        return status
 
     def _get_client(self) -> OpenAI:
         """Get or create the OpenAI client."""
@@ -65,7 +74,11 @@ class LLMEvaluator:
             Exception: If API call fails
         """
         if not self.is_ready():
-            raise ValueError("LLM is not configured. Please set OPENAI_API_KEY in .env file.")
+            raise ValueError("LLM is not configured. Please set OPENAI_API_KEY or enable USE_MOCK_LLM in .env file.")
+
+        # Use mock mode if enabled
+        if self.is_mock_mode():
+            return self._mock_evaluate(proposal_text, criteria, supplier_name)
 
         # Build the prompt
         prompt = self._build_prompt(proposal_text, criteria, supplier_name)
@@ -99,6 +112,98 @@ class LLMEvaluator:
             return result
         except json.JSONDecodeError as e:
             raise ValueError(f"LLM returned invalid JSON: {e}")
+
+    def _mock_evaluate(
+        self,
+        proposal_text: str,
+        criteria: list,
+        supplier_name: str
+    ) -> Dict[str, Any]:
+        """
+        Generate a mock evaluation response for testing.
+        Uses the proposal text to generate somewhat consistent scores.
+
+        Args:
+            proposal_text: The extracted text from the supplier's PDF
+            criteria: List of criteria from the database
+            supplier_name: Name of the supplier
+
+        Returns:
+            dict: Mock evaluation response matching the expected schema
+        """
+        # Use hash of proposal text for consistent but varied scores
+        text_hash = int(hashlib.md5(proposal_text.encode()).hexdigest()[:8], 16)
+        random.seed(text_hash)
+
+        # Generate scores for each criterion
+        criteria_results = []
+        for criterion in criteria:
+            max_score = criterion['max_score']
+
+            # Generate a score between 5 and max_score (mostly good scores)
+            base_score = random.randint(5, max_score)
+
+            # Adjust based on keyword matching (simple heuristic)
+            keywords = criterion['description'].lower().split()
+            matches = sum(1 for kw in keywords if kw in proposal_text.lower())
+            bonus = min(2, matches // 2)  # Up to +2 for keyword matches
+            score = min(max_score, base_score + bonus)
+
+            # Generate mock justification
+            justifications = [
+                f"The proposal addresses {criterion['name'].lower()} with moderate detail.",
+                f"Good coverage of {criterion['name'].lower()} requirements.",
+                f"The supplier demonstrates understanding of {criterion['name'].lower()}.",
+                f"Solid approach to {criterion['name'].lower()} with some areas for improvement.",
+                f"Comprehensive treatment of {criterion['name'].lower()} aspects.",
+            ]
+
+            # Generate mock evidence
+            evidences = [
+                f"The proposal mentions relevant aspects of {criterion['description'].lower()[:50]}...",
+                f"Section discussing {criterion['name'].lower()} provides adequate detail.",
+                f"Documentation shows attention to {criterion['name'].lower()} requirements.",
+                f"The supplier's approach to {criterion['name'].lower()} is documented.",
+                f"Evidence of {criterion['name'].lower()} capabilities found in proposal.",
+            ]
+
+            criteria_results.append({
+                "criterion_id": criterion['criterion_id'],
+                "score": score,
+                "max_score": max_score,
+                "justification": random.choice(justifications),
+                "evidence": random.choice(evidences)
+            })
+
+        # Generate mock risks based on proposal length
+        possible_risks = [
+            "Timeline may be aggressive for the scope described",
+            "Some technical details could be more specific",
+            "Experience with similar scale projects not fully demonstrated",
+            "Cost breakdown could be more detailed",
+            "Support model details are limited",
+            "Integration approach needs more clarification",
+            "Resource allocation seems tight for deliverables",
+        ]
+
+        # Select 1-3 risks
+        num_risks = random.randint(1, 3)
+        risks = random.sample(possible_risks, num_risks)
+
+        # Generate overall summary
+        summaries = [
+            f"{supplier_name} presents a solid proposal with good technical approach. The solution addresses most requirements with adequate detail. Some areas could benefit from additional clarification.",
+            f"The proposal from {supplier_name} demonstrates competent understanding of requirements. Implementation approach is reasonable with identified strengths in technical capability.",
+            f"{supplier_name} offers a competitive proposal with balanced coverage across evaluation criteria. The team appears capable with relevant experience in similar projects.",
+            f"Overall, {supplier_name}'s proposal is well-structured and addresses key requirements. Pricing appears reasonable and timeline is achievable with proper resource allocation.",
+        ]
+
+        return {
+            "supplier_name": supplier_name,
+            "criteria": criteria_results,
+            "risks": risks,
+            "overall_summary": random.choice(summaries)
+        }
 
     def _get_system_prompt(self) -> str:
         """Get the system prompt for the LLM."""
