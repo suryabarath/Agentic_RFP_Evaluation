@@ -102,18 +102,41 @@ class LLMEvaluator:
 
     def _get_system_prompt(self) -> str:
         """Get the system prompt for the LLM."""
-        return """You are an expert RFP (Request for Proposal) evaluator. Your job is to evaluate supplier proposals against specific criteria.
+        return """You are an expert RFP (Request for Proposal) evaluator with years of experience evaluating vendor proposals for enterprise software projects.
 
-IMPORTANT RULES:
-1. Only use information found in the proposal - never invent or assume information
-2. Evaluate every criterion provided
-3. Score each criterion from 0 to the specified max_score
-4. Provide specific evidence from the proposal for each score
-5. Be objective and consistent
-6. Identify any risks mentioned or implied in the proposal
-7. Return ONLY valid JSON in the exact format specified
+Your job is to objectively evaluate supplier proposals against specific criteria.
 
-Your response must be valid JSON only - no markdown, no explanation, just the JSON object."""
+CRITICAL RULES - YOU MUST FOLLOW THESE:
+
+1. ONLY USE EVIDENCE FROM THE PROPOSAL
+   - Never invent, assume, or hallucinate information
+   - If information is not in the proposal, give a lower score and note "Not addressed in proposal"
+   - Quote or specifically reference the proposal text as evidence
+
+2. EVALUATE EVERY CRITERION
+   - You must provide a score for ALL criteria provided
+   - Do not skip any criterion
+   - Each criterion must have: criterion_id, score, max_score, justification, evidence
+
+3. SCORING RULES
+   - Scores must be integers from 0 to the criterion's max_score
+   - 0 = Not addressed at all
+   - 1-3 = Poorly addressed or major gaps
+   - 4-6 = Partially addressed with some gaps
+   - 7-8 = Well addressed with minor gaps
+   - 9-10 = Excellently addressed with comprehensive detail
+   - NEVER give a score higher than max_score
+
+4. IDENTIFY RISKS
+   - Note any risks, concerns, or red flags in the proposal
+   - Include timeline risks, cost risks, technical risks, experience gaps
+   - If no risks found, return empty array []
+
+5. OUTPUT FORMAT
+   - Return ONLY valid JSON
+   - No markdown code blocks
+   - No explanatory text before or after the JSON
+   - Follow the exact structure specified"""
 
     def _build_prompt(self, proposal_text: str, criteria: list, supplier_name: str) -> str:
         """Build the evaluation prompt."""
@@ -126,45 +149,77 @@ Your response must be valid JSON only - no markdown, no explanation, just the JS
             for i, c in enumerate(criteria)
         ])
 
-        prompt = f"""Please evaluate the following supplier proposal.
+        prompt = f"""Evaluate the following supplier proposal against the criteria provided.
 
-SUPPLIER NAME: {supplier_name}
+══════════════════════════════════════════════════════════════════
+SUPPLIER: {supplier_name}
+══════════════════════════════════════════════════════════════════
 
-EVALUATION CRITERIA:
+EVALUATION CRITERIA ({len(criteria)} total):
 {criteria_text}
 
-PROPOSAL TEXT:
----
+══════════════════════════════════════════════════════════════════
+PROPOSAL CONTENT:
+══════════════════════════════════════════════════════════════════
 {proposal_text}
----
+══════════════════════════════════════════════════════════════════
 
-Return your evaluation as a JSON object with this exact structure:
+YOUR TASK:
+Evaluate this proposal against ALL {len(criteria)} criteria above.
+
+REQUIRED JSON OUTPUT FORMAT:
 {{
     "supplier_name": "{supplier_name}",
     "criteria": [
         {{
-            "criterion_id": <criterion ID from above>,
-            "score": <your score from 0 to max_score>,
-            "max_score": <max score for this criterion>,
-            "justification": "<why you gave this score - be specific>",
-            "evidence": "<quote or reference specific parts of the proposal>"
+            "criterion_id": 1,
+            "score": 8,
+            "max_score": 10,
+            "justification": "The proposal demonstrates strong technical capability with...",
+            "evidence": "Page 3 states: 'Our microservices architecture provides...'"
+        }},
+        {{
+            "criterion_id": 2,
+            "score": 7,
+            "max_score": 10,
+            "justification": "Implementation plan is detailed but timeline is aggressive...",
+            "evidence": "The Gantt chart on page 8 shows a 6-month timeline..."
         }}
     ],
     "risks": [
-        "<risk 1>",
-        "<risk 2>"
+        "Timeline appears aggressive given the project scope",
+        "Limited experience with similar scale implementations"
     ],
-    "overall_summary": "<overall assessment of the proposal - at least 2 sentences>"
+    "overall_summary": "This proposal presents a solid technical approach with competitive pricing. The vendor demonstrates relevant experience but the proposed timeline may need adjustment to accommodate proper testing phases."
 }}
 
-IMPORTANT:
-- Include ALL {len(criteria)} criteria in your response
-- Each score must be between 0 and that criterion's max_score
-- Justification must explain your reasoning
-- Evidence must reference the actual proposal content
-- If no risks are found, use an empty array []
+REMINDERS:
+- You MUST include all {len(criteria)} criteria
+- Each score must be 0 to that criterion's max_score (not higher!)
+- Justification and evidence must be specific, not generic
+- Return ONLY the JSON object, nothing else
 """
         return prompt
+
+    def get_prompt_preview(self, proposal_text: str, criteria: list, supplier_name: str) -> dict:
+        """
+        Get a preview of the prompts that will be sent to the LLM.
+        Useful for debugging and understanding what the LLM sees.
+
+        Args:
+            proposal_text: The extracted text from the supplier's PDF
+            criteria: List of criteria from the database
+            supplier_name: Name of the supplier
+
+        Returns:
+            dict: Contains 'system_prompt' and 'user_prompt'
+        """
+        return {
+            'system_prompt': self._get_system_prompt(),
+            'user_prompt': self._build_prompt(proposal_text, criteria, supplier_name),
+            'total_system_chars': len(self._get_system_prompt()),
+            'total_user_chars': len(self._build_prompt(proposal_text, criteria, supplier_name))
+        }
 
     def test_connection(self) -> tuple:
         """
