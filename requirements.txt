@@ -1,0 +1,17 @@
+# Web Framework
+streamlit==1.39.0
+
+# PDF Processing (using latest version compatible with Python 3.13)
+PyMuPDF==1.24.13
+
+# Data Validation
+pydantic==2.10.3
+
+# Environment Variables
+python-dotenv==1.0.1
+
+# LLM Integration (OpenAI API)
+openai==1.57.4
+
+# Additional utilities
+requests==2.32.3
