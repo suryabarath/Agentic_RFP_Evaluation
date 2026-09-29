@@ -7,6 +7,7 @@ Run with: streamlit run app.py
 
 import streamlit as st
 import pandas as pd
+import json
 from datetime import date, datetime
 
 # Import our modules
@@ -18,6 +19,7 @@ from src.pdf_tool import extract_text_from_uploaded_file, get_pdf_info, validate
 from src.evaluator import evaluator
 from src.orchestrator import Orchestrator, SupplierInput, PipelineResult
 from src.config import config
+from src.export import export_full_report, export_summary, export_supplier_scorecard, to_json_string
 
 # =============================================================================
 # PAGE CONFIGURATION
@@ -564,6 +566,59 @@ def show_results_page():
     with col4:
         st.metric("Mode", result.evaluation_mode)
 
+    # Export buttons
+    st.markdown("---")
+    st.subheader("📥 Export Results")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        # Full report export
+        full_report = export_full_report(result)
+        full_json = to_json_string(full_report)
+        st.download_button(
+            label="📄 Full Report (JSON)",
+            data=full_json,
+            file_name=f"rfp_evaluation_full_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            mime="application/json",
+            use_container_width=True
+        )
+
+    with col2:
+        # Summary export
+        summary = export_summary(result)
+        summary_json = to_json_string(summary)
+        st.download_button(
+            label="📋 Summary (JSON)",
+            data=summary_json,
+            file_name=f"rfp_evaluation_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            mime="application/json",
+            use_container_width=True
+        )
+
+    with col3:
+        # CSV export of rankings
+        if result.ranking and result.ranking.rankings:
+            rankings_data = [
+                {
+                    "Rank": r.rank,
+                    "Supplier": r.supplier_name,
+                    "Score": r.weighted_score,
+                    "PPI": r.ppi_score,
+                    "Risks": r.risk_count,
+                    "Warnings": r.warning_count
+                }
+                for r in result.ranking.rankings
+            ]
+            rankings_df = pd.DataFrame(rankings_data)
+            csv_data = rankings_df.to_csv(index=False)
+            st.download_button(
+                label="📊 Rankings (CSV)",
+                data=csv_data,
+                file_name=f"rfp_rankings_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+
     st.markdown("---")
 
     # Leaderboard
@@ -583,6 +638,21 @@ def show_results_page():
 
         if winner_result:
             display_supplier_scorecard(winner_result, result.benchmarks)
+
+    # Individual supplier exports
+    st.markdown("---")
+    st.subheader("📥 Export Individual Scorecards")
+    for sr in result.supplier_results:
+        if sr.success:
+            scorecard = export_supplier_scorecard(sr)
+            scorecard_json = to_json_string(scorecard)
+            st.download_button(
+                label=f"📄 {sr.supplier_name}",
+                data=scorecard_json,
+                file_name=f"scorecard_{sr.supplier_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.json",
+                mime="application/json",
+                key=f"export_{sr.supplier_name}"
+            )
 
 
 def show_history_page():
