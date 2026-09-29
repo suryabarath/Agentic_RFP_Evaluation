@@ -8,9 +8,29 @@ Run with: streamlit run app.py
 import streamlit as st
 import pandas as pd
 import json
+import os
 from datetime import date, datetime
 
-# Import our modules
+# =============================================================================
+# DATABASE AUTO-INITIALIZATION (for Streamlit Cloud deployment)
+# =============================================================================
+def ensure_database_exists():
+    """
+    Automatically initialize the database if it doesn't exist.
+    This is essential for Streamlit Cloud where storage is ephemeral.
+    """
+    db_path = os.path.join(os.path.dirname(__file__), 'database', 'rfp.db')
+
+    if not os.path.exists(db_path):
+        # Import and run initialization
+        from database.init_db import create_tables, seed_evaluation_criteria
+        create_tables()
+        seed_evaluation_criteria()
+
+# Run database check on app startup
+ensure_database_exists()
+
+# Import our modules (after ensuring database exists)
 from src.database import (
     get_active_criteria, get_total_weight, save_pipeline_result,
     get_all_runs, get_run_summary
