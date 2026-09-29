@@ -411,7 +411,7 @@ def save_pipeline_result(
                 rfp_run_id=run_id,
                 supplier_name=supplier_result.supplier_name,
                 submission_date=datetime.now().strftime('%Y-%m-%d'),
-                experience_rating=0,  # Not used in current implementation
+                experience_rating=5,  # Default value (1-10 scale, 5 = neutral)
                 absolute_score=supplier_result.score.total_weighted_score if supplier_result.score else 0,
                 ppi=supplier_result.ppi.ppi_score if supplier_result.ppi else 0,
                 final_rank=rank,
@@ -443,7 +443,7 @@ def _save_failed_result(run_id: int, supplier_result) -> None:
         rfp_run_id=run_id,
         supplier_name=supplier_result.supplier_name,
         submission_date='1970-01-01',  # Placeholder for failed
-        experience_rating=0,
+        experience_rating=1,  # Minimum valid value for failed evaluations
         absolute_score=0,
         ppi=0,
         final_rank=999,  # Failed results get low rank
