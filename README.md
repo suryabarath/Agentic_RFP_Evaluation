@@ -252,6 +252,40 @@ python test_data/generate_test_pdfs.py
 
 ---
 
+## Synthetic Test Data
+
+Four sample supplier proposals are included for testing and demonstration:
+
+| Supplier | Profile | Expected Rank |
+|----------|---------|---------------|
+| **TechCorp Solutions** | Strong technical depth, detailed architecture, comprehensive security | High |
+| **GlobalSystems Corp** | Enterprise focus, extensive compliance documentation, proven track record | High |
+| **CloudFirst Inc** | Cloud-native approach, modern tech stack, competitive pricing | Medium-High |
+| **BudgetTech Ltd** | Budget-focused, minimal documentation, basic features | Low |
+
+### Generating Test PDFs
+
+```bash
+python test_data/generate_test_pdfs.py
+```
+
+This creates realistic proposal documents with varying quality levels:
+- Different content lengths (7KB to 35KB)
+- Varying detail in technical sections
+- Different pricing structures
+- Diverse experience levels
+
+### Using Test Data
+
+1. Generate PDFs: `python test_data/generate_test_pdfs.py`
+2. Run the app: `streamlit run app.py`
+3. Upload the PDFs from `test_data/` folder
+4. Run evaluation to see rankings
+
+The mock evaluator produces consistent scores based on document content, so the same PDFs will always rank in the same order.
+
+---
+
 ## Technical Constraints
 
 **Current Scope:**
