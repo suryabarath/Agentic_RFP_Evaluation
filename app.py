@@ -406,7 +406,6 @@ def display_supplier_scorecard(supplier_result, benchmarks=None):
         else:
             st.success("✅ **No validation warnings!**")
             st.write("The LLM response passed all validation checks without any issues.")
-            st.balloons()
 
 
 def run_evaluation(suppliers_data: list, criteria: list) -> PipelineResult:
@@ -636,7 +635,6 @@ def show_evaluation_page(criteria):
                 st.session_state.last_run_id = run_id
 
             st.success(f"✅ Evaluation complete! Run ID: {run_id}")
-            st.balloons()
 
     # Show results if available
     if st.session_state.evaluation_result:
