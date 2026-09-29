@@ -15,3 +15,6 @@ openai==1.57.4
 
 # Additional utilities
 requests==2.32.3
+
+# Testing
+pytest==8.3.4
