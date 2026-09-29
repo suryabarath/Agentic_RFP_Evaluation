@@ -310,18 +310,24 @@ def render_ai_config_sidebar():
     # Mode indicator box
     if offline_mode:
         st.sidebar.markdown("""
-        <div style="border-left: 4px solid #6366f1; padding: 10px; background-color: #f8f9fa; margin: 10px 0;">
-            <span style="color: #6366f1; font-size: 12px; font-weight: bold;">MODE</span><br>
-            <span style="font-size: 16px; font-weight: bold;">Offline Mode</span><br>
-            <span style="color: #666; font-size: 13px;">Uses simulated mock evaluations.</span>
+        <div style="border-left: 4px solid #94a3b8; padding: 12px 14px; background-color: #f8f9fa; margin: 10px 0; border-radius: 0 8px 8px 0;">
+            <span style="color: #64748b; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">MODE</span><br>
+            <div style="display: flex; align-items: center; margin-top: 4px;">
+                <span style="display: inline-block; width: 8px; height: 8px; background-color: #94a3b8; border-radius: 50%; margin-right: 8px;"></span>
+                <span style="font-size: 16px; font-weight: 600; color: #1e293b;">Offline Mode</span>
+            </div>
+            <span style="color: #64748b; font-size: 13px; margin-top: 2px; display: block;">Uses simulated mock evaluations.</span>
         </div>
         """, unsafe_allow_html=True)
     else:
         st.sidebar.markdown("""
-        <div style="border-left: 4px solid #6366f1; padding: 10px; background-color: #f8f9fa; margin: 10px 0;">
-            <span style="color: #6366f1; font-size: 12px; font-weight: bold;">MODE</span><br>
-            <span style="font-size: 16px; font-weight: bold;">Live Mode</span><br>
-            <span style="color: #666; font-size: 13px;">Calls a real LLM with your key.</span>
+        <div style="border-left: 4px solid #22c55e; padding: 12px 14px; background-color: #f0fdf4; margin: 10px 0; border-radius: 0 8px 8px 0;">
+            <span style="color: #16a34a; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">MODE</span><br>
+            <div style="display: flex; align-items: center; margin-top: 4px;">
+                <span style="display: inline-block; width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 6px #22c55e;"></span>
+                <span style="font-size: 16px; font-weight: 600; color: #1e293b;">Live Mode</span>
+            </div>
+            <span style="color: #16a34a; font-size: 13px; margin-top: 2px; display: block;">Calls a real LLM with your key.</span>
         </div>
         """, unsafe_allow_html=True)
 
