@@ -1,8 +1,11 @@
 # Web Framework
 streamlit==1.39.0
 
-# PDF Processing (using latest version compatible with Python 3.13)
+# PDF Processing
 PyMuPDF==1.24.13
+
+# Data Handling
+pandas==2.2.3
 
 # Data Validation
 pydantic==2.10.3
@@ -10,11 +13,11 @@ pydantic==2.10.3
 # Environment Variables
 python-dotenv==1.0.1
 
-# LLM Integration (OpenAI and Anthropic APIs)
+# LLM Integration
 openai==1.57.4
 anthropic==0.40.0
 
-# Additional utilities
+# HTTP Requests
 requests==2.32.3
 
 # Testing
