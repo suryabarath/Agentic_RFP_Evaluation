@@ -1,0 +1,43 @@
+{
+  "report_type": "summary",
+  "generated_at": "2026-09-29T16:00:11.015258",
+  "evaluation_mode": "MOCK",
+  "total_suppliers": 4,
+  "winner": {
+    "name": "CloudFirst Inc.",
+    "score": 85.0,
+    "ppi": 81.66,
+    "grade": "B"
+  },
+  "rankings": [
+    {
+      "rank": 1,
+      "supplier": "CloudFirst Inc.",
+      "score": 85.0,
+      "ppi": 81.66
+    },
+    {
+      "rank": 2,
+      "supplier": "GLOBAL SYSTEMS CORPORATION",
+      "score": 84.0,
+      "ppi": 80.26
+    },
+    {
+      "rank": 3,
+      "supplier": "TechCorp Solutions",
+      "score": 78.0,
+      "ppi": 77.85
+    },
+    {
+      "rank": 4,
+      "supplier": "BudgetTech Ltd",
+      "score": 76.0,
+      "ppi": 75.35
+    }
+  ],
+  "benchmarks": {
+    "best": 85.0,
+    "average": 80.75,
+    "worst": 76.0
+  }
+}

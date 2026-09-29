@@ -1,0 +1,592 @@
+{
+  "report_type": "full_evaluation",
+  "generated_at": "2026-09-29T15:53:46.333027",
+  "metadata": {
+    "evaluation_mode": "MOCK",
+    "started_at": "2026-09-29T15:52:37.185578",
+    "completed_at": "2026-09-29T15:52:37.214636",
+    "total_suppliers": 4,
+    "successful_evaluations": 4,
+    "failed_evaluations": 0
+  },
+  "ranking": {
+    "total_suppliers": 4,
+    "ties_encountered": 0,
+    "tie_break_methods_used": [],
+    "rankings": [
+      {
+        "rank": 1,
+        "supplier_name": "CloudFirst Inc.",
+        "weighted_score": 85.0,
+        "ppi_score": 81.66,
+        "risk_count": 2,
+        "warning_count": 0,
+        "rank_status": "clear",
+        "tied_with": []
+      },
+      {
+        "rank": 2,
+        "supplier_name": "GLOBAL SYSTEMS CORPORATION",
+        "weighted_score": 84.0,
+        "ppi_score": 80.26,
+        "risk_count": 2,
+        "warning_count": 0,
+        "rank_status": "clear",
+        "tied_with": []
+      },
+      {
+        "rank": 3,
+        "supplier_name": "TechCorp Solutions",
+        "weighted_score": 78.0,
+        "ppi_score": 77.85,
+        "risk_count": 3,
+        "warning_count": 0,
+        "rank_status": "clear",
+        "tied_with": []
+      },
+      {
+        "rank": 4,
+        "supplier_name": "BudgetTech Ltd",
+        "weighted_score": 76.0,
+        "ppi_score": 75.35,
+        "risk_count": 1,
+        "warning_count": 0,
+        "rank_status": "clear",
+        "tied_with": []
+      }
+    ]
+  },
+  "benchmarks": {
+    "supplier_count": 4,
+    "best_total_score": 85.0,
+    "worst_total_score": 76.0,
+    "average_total_score": 80.75,
+    "std_dev_total": 4.43,
+    "top_supplier": "CloudFirst Inc.",
+    "bottom_supplier": "BudgetTech Ltd",
+    "criteria_benchmarks": [
+      {
+        "criterion_id": 1,
+        "name": "Technical Capability",
+        "weight": 30.0,
+        "best_raw_score": 10,
+        "worst_raw_score": 7,
+        "average_raw_score": 9,
+        "best_suppliers": [
+          "GLOBAL SYSTEMS CORPORATION",
+          "BudgetTech Ltd"
+        ],
+        "worst_suppliers": [
+          "TechCorp Solutions"
+        ]
+      },
+      {
+        "criterion_id": 2,
+        "name": "Implementation Plan",
+        "weight": 20.0,
+        "best_raw_score": 10,
+        "worst_raw_score": 6,
+        "average_raw_score": 7.75,
+        "best_suppliers": [
+          "GLOBAL SYSTEMS CORPORATION"
+        ],
+        "worst_suppliers": [
+          "CloudFirst Inc."
+        ]
+      },
+      {
+        "criterion_id": 3,
+        "name": "Commercial Value",
+        "weight": 20.0,
+        "best_raw_score": 8,
+        "worst_raw_score": 6,
+        "average_raw_score": 6.75,
+        "best_suppliers": [
+          "CloudFirst Inc."
+        ],
+        "worst_suppliers": [
+          "GLOBAL SYSTEMS CORPORATION",
+          "BudgetTech Ltd"
+        ]
+      },
+      {
+        "criterion_id": 4,
+        "name": "Security & Compliance",
+        "weight": 20.0,
+        "best_raw_score": 10,
+        "worst_raw_score": 7,
+        "average_raw_score": 8.25,
+        "best_suppliers": [
+          "CloudFirst Inc."
+        ],
+        "worst_suppliers": [
+          "GLOBAL SYSTEMS CORPORATION",
+          "BudgetTech Ltd"
+        ]
+      },
+      {
+        "criterion_id": 5,
+        "name": "Support & Experience",
+        "weight": 10.0,
+        "best_raw_score": 10,
+        "worst_raw_score": 6,
+        "average_raw_score": 8.25,
+        "best_suppliers": [
+          "CloudFirst Inc."
+        ],
+        "worst_suppliers": [
+          "BudgetTech Ltd"
+        ]
+      }
+    ]
+  },
+  "suppliers": [
+    {
+      "supplier_name": "GLOBAL SYSTEMS CORPORATION",
+      "success": true,
+      "processing_time_seconds": 0.010136842727661133,
+      "score": {
+        "total_weighted_score": 84.0,
+        "total_raw_score": 41,
+        "total_max_score": 50,
+        "overall_percentage": 82.0,
+        "criteria": [
+          {
+            "criterion_id": 1,
+            "name": "Technical Capability",
+            "raw_score": 10,
+            "max_score": 10,
+            "weight": 30.0,
+            "weighted_score": 30.0,
+            "percentage": 100.0,
+            "justification": "Solid approach to technical capability with some areas for improvement.",
+            "evidence": "Documentation shows attention to technical capability requirements."
+          },
+          {
+            "criterion_id": 2,
+            "name": "Implementation Plan",
+            "raw_score": 10,
+            "max_score": 10,
+            "weight": 20.0,
+            "weighted_score": 20.0,
+            "percentage": 100.0,
+            "justification": "Solid approach to implementation plan with some areas for improvement.",
+            "evidence": "The proposal mentions relevant aspects of timeline, milestones, staffing, risk plan..."
+          },
+          {
+            "criterion_id": 3,
+            "name": "Commercial Value",
+            "raw_score": 6,
+            "max_score": 10,
+            "weight": 20.0,
+            "weighted_score": 12.0,
+            "percentage": 60.0,
+            "justification": "The proposal addresses commercial value with moderate detail.",
+            "evidence": "Evidence of commercial value capabilities found in proposal."
+          },
+          {
+            "criterion_id": 4,
+            "name": "Security & Compliance",
+            "raw_score": 7,
+            "max_score": 10,
+            "weight": 20.0,
+            "weighted_score": 14.0,
+            "percentage": 70.0,
+            "justification": "The supplier demonstrates understanding of security & compliance.",
+            "evidence": "The proposal mentions relevant aspects of controls, certifications, privacy, auditability..."
+          },
+          {
+            "criterion_id": 5,
+            "name": "Support & Experience",
+            "raw_score": 8,
+            "max_score": 10,
+            "weight": 10.0,
+            "weighted_score": 8.0,
+            "percentage": 80.0,
+            "justification": "Solid approach to support & experience with some areas for improvement.",
+            "evidence": "Section discussing support & experience provides adequate detail."
+          }
+        ],
+        "risks": [
+          "Resource allocation seems tight for deliverables",
+          "Timeline may be aggressive for the scope described"
+        ],
+        "overall_summary": "Overall, GLOBAL SYSTEMS CORPORATION's proposal is well-structured and addresses key requirements. Pricing appears reasonable and timeline is achievable with proper resource allocation."
+      },
+      "ppi": {
+        "ppi_score": 80.26,
+        "ppi_grade": "B",
+        "weighted_score": 84.0,
+        "consistency_score": 56.37,
+        "quality_score": 100.0,
+        "risk_penalty": 2.0,
+        "risk_count": 2,
+        "warning_count": 0
+      },
+      "gaps": {
+        "total_gap_count": 1,
+        "max_potential_improvement": 16.0,
+        "critical_gaps": [],
+        "high_gaps": [],
+        "medium_gaps": [
+          {
+            "name": "Commercial Value",
+            "percentage": 60.0
+          }
+        ]
+      },
+      "relative_performance": {
+        "rank": 2,
+        "total_suppliers": 4,
+        "percentile": 75.0,
+        "tier": "top",
+        "normalized_score": 98.82,
+        "distance_from_leader": 1.0,
+        "distance_from_avg": 3.25,
+        "relative_strengths": [
+          "Technical Capability",
+          "Implementation Plan"
+        ],
+        "relative_weaknesses": [
+          "Commercial Value",
+          "Security & Compliance"
+        ]
+      }
+    },
+    {
+      "supplier_name": "TechCorp Solutions",
+      "success": true,
+      "processing_time_seconds": 0.007590055465698242,
+      "score": {
+        "total_weighted_score": 78.0,
+        "total_raw_score": 40,
+        "total_max_score": 50,
+        "overall_percentage": 80.0,
+        "criteria": [
+          {
+            "criterion_id": 1,
+            "name": "Technical Capability",
+            "raw_score": 7,
+            "max_score": 10,
+            "weight": 30.0,
+            "weighted_score": 21.0,
+            "percentage": 70.0,
+            "justification": "The supplier demonstrates understanding of technical capability.",
+            "evidence": "The proposal mentions relevant aspects of architecture, integrations, scalability, technical..."
+          },
+          {
+            "criterion_id": 2,
+            "name": "Implementation Plan",
+            "raw_score": 8,
+            "max_score": 10,
+            "weight": 20.0,
+            "weighted_score": 16.0,
+            "percentage": 80.0,
+            "justification": "Good coverage of implementation plan requirements.",
+            "evidence": "Evidence of implementation plan capabilities found in proposal."
+          },
+          {
+            "criterion_id": 3,
+            "name": "Commercial Value",
+            "raw_score": 7,
+            "max_score": 10,
+            "weight": 20.0,
+            "weighted_score": 14.0,
+            "percentage": 70.0,
+            "justification": "The supplier demonstrates understanding of commercial value.",
+            "evidence": "Evidence of commercial value capabilities found in proposal."
+          },
+          {
+            "criterion_id": 4,
+            "name": "Security & Compliance",
+            "raw_score": 9,
+            "max_score": 10,
+            "weight": 20.0,
+            "weighted_score": 18.0,
+            "percentage": 90.0,
+            "justification": "Comprehensive treatment of security & compliance aspects.",
+            "evidence": "The supplier's approach to security & compliance is documented."
+          },
+          {
+            "criterion_id": 5,
+            "name": "Support & Experience",
+            "raw_score": 9,
+            "max_score": 10,
+            "weight": 10.0,
+            "weighted_score": 9.0,
+            "percentage": 90.0,
+            "justification": "The supplier demonstrates understanding of support & experience.",
+            "evidence": "Evidence of support & experience capabilities found in proposal."
+          }
+        ],
+        "risks": [
+          "Resource allocation seems tight for deliverables",
+          "Cost breakdown could be more detailed",
+          "Some technical details could be more specific"
+        ],
+        "overall_summary": "TechCorp Solutions presents a solid proposal with good technical approach. The solution addresses most requirements with adequate detail. Some areas could benefit from additional clarification."
+      },
+      "ppi": {
+        "ppi_score": 77.85,
+        "ppi_grade": "C",
+        "weighted_score": 78.0,
+        "consistency_score": 75.0,
+        "quality_score": 100.0,
+        "risk_penalty": 3.0,
+        "risk_count": 3,
+        "warning_count": 0
+      },
+      "gaps": {
+        "total_gap_count": 0,
+        "max_potential_improvement": 22.0,
+        "critical_gaps": [],
+        "high_gaps": [],
+        "medium_gaps": []
+      },
+      "relative_performance": {
+        "rank": 3,
+        "total_suppliers": 4,
+        "percentile": 50.0,
+        "tier": "above_average",
+        "normalized_score": 91.76,
+        "distance_from_leader": 7.0,
+        "distance_from_avg": -2.75,
+        "relative_strengths": [
+          "Security & Compliance",
+          "Support & Experience"
+        ],
+        "relative_weaknesses": [
+          "Technical Capability"
+        ]
+      }
+    },
+    {
+      "supplier_name": "CloudFirst Inc.",
+      "success": true,
+      "processing_time_seconds": 0.005139827728271484,
+      "score": {
+        "total_weighted_score": 85.0,
+        "total_raw_score": 43,
+        "total_max_score": 50,
+        "overall_percentage": 86.0,
+        "criteria": [
+          {
+            "criterion_id": 1,
+            "name": "Technical Capability",
+            "raw_score": 9,
+            "max_score": 10,
+            "weight": 30.0,
+            "weighted_score": 27.0,
+            "percentage": 90.0,
+            "justification": "Comprehensive treatment of technical capability aspects.",
+            "evidence": "Section discussing technical capability provides adequate detail."
+          },
+          {
+            "criterion_id": 2,
+            "name": "Implementation Plan",
+            "raw_score": 6,
+            "max_score": 10,
+            "weight": 20.0,
+            "weighted_score": 12.0,
+            "percentage": 60.0,
+            "justification": "Comprehensive treatment of implementation plan aspects.",
+            "evidence": "The proposal mentions relevant aspects of timeline, milestones, staffing, risk plan..."
+          },
+          {
+            "criterion_id": 3,
+            "name": "Commercial Value",
+            "raw_score": 8,
+            "max_score": 10,
+            "weight": 20.0,
+            "weighted_score": 16.0,
+            "percentage": 80.0,
+            "justification": "The supplier demonstrates understanding of commercial value.",
+            "evidence": "Documentation shows attention to commercial value requirements."
+          },
+          {
+            "criterion_id": 4,
+            "name": "Security & Compliance",
+            "raw_score": 10,
+            "max_score": 10,
+            "weight": 20.0,
+            "weighted_score": 20.0,
+            "percentage": 100.0,
+            "justification": "Comprehensive treatment of security & compliance aspects.",
+            "evidence": "Evidence of security & compliance capabilities found in proposal."
+          },
+          {
+            "criterion_id": 5,
+            "name": "Support & Experience",
+            "raw_score": 10,
+            "max_score": 10,
+            "weight": 10.0,
+            "weighted_score": 10.0,
+            "percentage": 100.0,
+            "justification": "Solid approach to support & experience with some areas for improvement.",
+            "evidence": "Documentation shows attention to support & experience requirements."
+          }
+        ],
+        "risks": [
+          "Integration approach needs more clarification",
+          "Resource allocation seems tight for deliverables"
+        ],
+        "overall_summary": "Overall, CloudFirst Inc.'s proposal is well-structured and addresses key requirements. Pricing appears reasonable and timeline is achievable with proper resource allocation."
+      },
+      "ppi": {
+        "ppi_score": 81.66,
+        "ppi_grade": "B",
+        "weighted_score": 85.0,
+        "consistency_score": 61.09,
+        "quality_score": 100.0,
+        "risk_penalty": 2.0,
+        "risk_count": 2,
+        "warning_count": 0
+      },
+      "gaps": {
+        "total_gap_count": 1,
+        "max_potential_improvement": 15.0,
+        "critical_gaps": [],
+        "high_gaps": [],
+        "medium_gaps": [
+          {
+            "name": "Implementation Plan",
+            "percentage": 60.0
+          }
+        ]
+      },
+      "relative_performance": {
+        "rank": 1,
+        "total_suppliers": 4,
+        "percentile": 100.0,
+        "tier": "top",
+        "normalized_score": 100.0,
+        "distance_from_leader": 0.0,
+        "distance_from_avg": 4.25,
+        "relative_strengths": [
+          "Commercial Value",
+          "Security & Compliance",
+          "Support & Experience"
+        ],
+        "relative_weaknesses": [
+          "Implementation Plan"
+        ]
+      }
+    },
+    {
+      "supplier_name": "BudgetTech Ltd",
+      "success": true,
+      "processing_time_seconds": 0.0033202171325683594,
+      "score": {
+        "total_weighted_score": 76.0,
+        "total_raw_score": 36,
+        "total_max_score": 50,
+        "overall_percentage": 72.0,
+        "criteria": [
+          {
+            "criterion_id": 1,
+            "name": "Technical Capability",
+            "raw_score": 10,
+            "max_score": 10,
+            "weight": 30.0,
+            "weighted_score": 30.0,
+            "percentage": 100.0,
+            "justification": "The proposal addresses technical capability with moderate detail.",
+            "evidence": "Documentation shows attention to technical capability requirements."
+          },
+          {
+            "criterion_id": 2,
+            "name": "Implementation Plan",
+            "raw_score": 7,
+            "max_score": 10,
+            "weight": 20.0,
+            "weighted_score": 14.0,
+            "percentage": 70.0,
+            "justification": "Comprehensive treatment of implementation plan aspects.",
+            "evidence": "Documentation shows attention to implementation plan requirements."
+          },
+          {
+            "criterion_id": 3,
+            "name": "Commercial Value",
+            "raw_score": 6,
+            "max_score": 10,
+            "weight": 20.0,
+            "weighted_score": 12.0,
+            "percentage": 60.0,
+            "justification": "The supplier demonstrates understanding of commercial value.",
+            "evidence": "The proposal mentions relevant aspects of pricing clarity, total cost, assumptions..."
+          },
+          {
+            "criterion_id": 4,
+            "name": "Security & Compliance",
+            "raw_score": 7,
+            "max_score": 10,
+            "weight": 20.0,
+            "weighted_score": 14.0,
+            "percentage": 70.0,
+            "justification": "The proposal addresses security & compliance with moderate detail.",
+            "evidence": "The proposal mentions relevant aspects of controls, certifications, privacy, auditability..."
+          },
+          {
+            "criterion_id": 5,
+            "name": "Support & Experience",
+            "raw_score": 6,
+            "max_score": 10,
+            "weight": 10.0,
+            "weighted_score": 6.0,
+            "percentage": 60.0,
+            "justification": "Solid approach to support & experience with some areas for improvement.",
+            "evidence": "Section discussing support & experience provides adequate detail."
+          }
+        ],
+        "risks": [
+          "Experience with similar scale projects not fully demonstrated"
+        ],
+        "overall_summary": "BudgetTech Ltd presents a solid proposal with good technical approach. The solution addresses most requirements with adequate detail. Some areas could benefit from additional clarification."
+      },
+      "ppi": {
+        "ppi_score": 75.35,
+        "ppi_grade": "C",
+        "weighted_score": 76.0,
+        "consistency_score": 54.36,
+        "quality_score": 100.0,
+        "risk_penalty": 1.0,
+        "risk_count": 1,
+        "warning_count": 0
+      },
+      "gaps": {
+        "total_gap_count": 2,
+        "max_potential_improvement": 24.0,
+        "critical_gaps": [],
+        "high_gaps": [],
+        "medium_gaps": [
+          {
+            "name": "Commercial Value",
+            "percentage": 60.0
+          },
+          {
+            "name": "Support & Experience",
+            "percentage": 60.0
+          }
+        ]
+      },
+      "relative_performance": {
+        "rank": 4,
+        "total_suppliers": 4,
+        "percentile": 25.0,
+        "tier": "average",
+        "normalized_score": 89.41,
+        "distance_from_leader": 9.0,
+        "distance_from_avg": -4.75,
+        "relative_strengths": [
+          "Technical Capability"
+        ],
+        "relative_weaknesses": [
+          "Implementation Plan",
+          "Commercial Value",
+          "Security & Compliance",
+          "Support & Experience"
+        ]
+      }
+    }
+  ]
+}
