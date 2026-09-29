@@ -199,11 +199,12 @@ def display_supplier_scorecard(supplier_result, benchmarks=None):
         # Detailed justifications and evidence
         st.markdown("**Detailed Justifications:**")
         for cs in score.criteria_scores:
-            with st.expander(f"📝 {cs.name} ({cs.raw_score}/{cs.max_score})"):
-                st.markdown("**Justification:**")
-                st.write(cs.justification)
-                st.markdown("**Evidence:**")
-                st.write(cs.evidence)
+            st.markdown(f"##### 📝 {cs.name} ({cs.raw_score}/{cs.max_score})")
+            st.markdown("**Justification:**")
+            st.write(cs.justification)
+            st.markdown("**Evidence:**")
+            st.write(cs.evidence)
+            st.markdown("---")
 
         # Risks section
         if score.risks:
