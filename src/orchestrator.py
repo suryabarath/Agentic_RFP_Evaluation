@@ -19,6 +19,17 @@ from typing import List, Dict, Any, Optional, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from src.errors import (
+    RFPEvaluationError,
+    PDFExtractionError,
+    PDFTooShortError,
+    LLMError,
+    ValidationError,
+    NoSuppliersError,
+    AllSuppliersFailedError,
+    PipelineError
+)
+
 # Import all pipeline components
 from src.database import get_active_criteria
 from src.pdf_tool import extract_text_from_uploaded_file
@@ -147,6 +158,11 @@ class Orchestrator:
             PipelineResult: Complete evaluation results
         """
         started_at = datetime.now()
+
+        # Validate inputs
+        if not suppliers:
+            raise NoSuppliersError()
+
         self._load_criteria()
 
         def report(msg: str, current: int = 0, total: int = 0):
@@ -235,7 +251,8 @@ class Orchestrator:
             result.extracted_text = extracted_text
 
             if not extracted_text or len(extracted_text.strip()) < 50:
-                result.error = "PDF extraction failed or document too short"
+                char_count = len(extracted_text.strip()) if extracted_text else 0
+                result.error = f"PDF too short ({char_count} chars, minimum 50 required)"
                 result.error_stage = "pdf_extraction"
                 result.processing_time_seconds = time.time() - start_time
                 return result
@@ -278,6 +295,21 @@ class Orchestrator:
             result.processing_time_seconds = time.time() - start_time
             return result
 
+        except PDFExtractionError as e:
+            result.error = e.message
+            result.error_stage = "pdf_extraction"
+            result.processing_time_seconds = time.time() - start_time
+            return result
+        except LLMError as e:
+            result.error = e.message
+            result.error_stage = "llm_evaluation"
+            result.processing_time_seconds = time.time() - start_time
+            return result
+        except ValidationError as e:
+            result.error = e.message
+            result.error_stage = "validation"
+            result.processing_time_seconds = time.time() - start_time
+            return result
         except Exception as e:
             result.error = str(e)
             result.error_stage = "unknown"

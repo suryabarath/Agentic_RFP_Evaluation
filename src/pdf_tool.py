@@ -9,6 +9,8 @@ import fitz  # PyMuPDF
 from typing import Union, BinaryIO
 import io
 
+from src.errors import PDFExtractionError, PDFTooShortError, PDFCorruptedError
+
 
 def extract_text_from_pdf(pdf_source: Union[str, bytes, BinaryIO]) -> str:
     """
@@ -73,9 +75,14 @@ def extract_text_from_pdf(pdf_source: Union[str, bytes, BinaryIO]) -> str:
         return full_text
 
     except FileNotFoundError:
-        raise FileNotFoundError(f"PDF file not found: {pdf_source}")
+        filename = pdf_source if isinstance(pdf_source, str) else "uploaded file"
+        raise PDFExtractionError(f"PDF file not found: {filename}", filename)
+    except fitz.FileDataError as e:
+        filename = pdf_source if isinstance(pdf_source, str) else getattr(pdf_source, 'name', 'uploaded file')
+        raise PDFCorruptedError(filename, str(e))
     except Exception as e:
-        raise ValueError(f"Error reading PDF: {str(e)}")
+        filename = pdf_source if isinstance(pdf_source, str) else getattr(pdf_source, 'name', 'uploaded file')
+        raise PDFExtractionError(f"Error reading PDF: {str(e)}", filename)
 
 
 def extract_text_from_uploaded_file(uploaded_file) -> str:
