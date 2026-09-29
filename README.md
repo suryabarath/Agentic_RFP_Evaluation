@@ -304,32 +304,17 @@ The mock evaluator produces consistent scores based on document content, so the 
 
 ## Dependencies
 
-```
-# Web Framework
-streamlit==1.39.0
-
-# PDF Processing
-PyMuPDF==1.24.13
-
-# Data Handling
-pandas==2.2.3
-
-# Data Validation
-pydantic==2.10.3
-
-# Environment Variables
-python-dotenv==1.0.1
-
-# LLM Integration
-openai==1.57.4
-anthropic==0.40.0
-
-# HTTP Requests
-requests==2.32.3
-
-# Testing
-pytest==8.3.4
-```
+| Package | Version | Purpose |
+|---------|---------|---------|
+| streamlit | 1.39.0 | Web framework |
+| PyMuPDF | 1.24.13 | PDF processing |
+| pandas | 2.2.3 | Data handling |
+| pydantic | 2.10.3 | Data validation |
+| python-dotenv | 1.0.1 | Environment variables |
+| openai | 1.57.4 | OpenAI API client |
+| anthropic | 0.40.0 | Anthropic API client |
+| requests | 2.32.3 | HTTP requests |
+| pytest | 8.3.4 | Testing framework |
 
 ---
 
