@@ -84,42 +84,147 @@ def display_supplier_scorecard(supplier_result, benchmarks=None):
 
     score = supplier_result.score
     ppi = supplier_result.ppi
+    gaps = supplier_result.gaps
+    relative = supplier_result.relative
 
-    # Header with grade
-    col1, col2, col3 = st.columns([2, 1, 1])
+    # Header metrics row
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.subheader(f"📊 {supplier_result.supplier_name}")
-    with col2:
         st.metric("Weighted Score", f"{score.total_weighted_score:.2f}/100")
-    with col3:
+    with col2:
         if ppi:
-            st.metric("PPI Grade", ppi.ppi_grade, delta=f"{ppi.ppi_score:.1f}")
+            st.metric("PPI Score", f"{ppi.ppi_score:.2f}", delta=f"Grade: {ppi.ppi_grade}")
+    with col3:
+        if relative:
+            st.metric("Rank", f"#{relative.rank}", delta=f"{relative.percentile:.0f}th %ile")
+    with col4:
+        st.metric("Risks", len(score.risks), delta="identified")
 
-    # Criteria breakdown
-    st.markdown("**Criteria Scores:**")
-    criteria_data = []
-    for cs in score.criteria_scores:
-        criteria_data.append({
-            'Criterion': cs.name,
-            'Score': f"{cs.raw_score}/{cs.max_score}",
-            'Percentage': f"{cs.percentage:.0f}%",
-            'Weight': f"{cs.weight}%",
-            'Weighted': f"{cs.weighted_score:.2f}",
-            'Justification': cs.justification[:100] + "..." if len(cs.justification) > 100 else cs.justification
-        })
+    # Tabs for different views
+    tab1, tab2, tab3, tab4 = st.tabs(["📊 Scores", "📈 Visual", "🔍 Gaps", "📋 Details"])
 
-    df = pd.DataFrame(criteria_data)
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    with tab1:
+        # Criteria breakdown table
+        st.markdown("**Criteria Breakdown:**")
+        criteria_data = []
+        for cs in score.criteria_scores:
+            # Determine status emoji based on percentage
+            if cs.percentage >= 80:
+                status = "🟢"
+            elif cs.percentage >= 60:
+                status = "🟡"
+            else:
+                status = "🔴"
 
-    # Risks
-    if score.risks:
-        st.markdown("**Identified Risks:**")
-        for risk in score.risks:
-            st.warning(f"⚠️ {risk}")
+            criteria_data.append({
+                'Status': status,
+                'Criterion': cs.name,
+                'Score': f"{cs.raw_score}/{cs.max_score}",
+                'Percentage': f"{cs.percentage:.0f}%",
+                'Weight': f"{cs.weight}%",
+                'Contribution': f"{cs.weighted_score:.2f}"
+            })
 
-    # Summary
-    st.markdown("**Overall Summary:**")
-    st.info(score.overall_summary)
+        df = pd.DataFrame(criteria_data)
+        st.dataframe(df, use_container_width=True, hide_index=True)
+
+        # Score calculation breakdown
+        st.markdown("**Score Calculation:**")
+        calc_text = " + ".join([f"{cs.weighted_score:.2f}" for cs in score.criteria_scores])
+        st.code(f"{calc_text} = {score.total_weighted_score:.2f}")
+
+    with tab2:
+        # Visual progress bars for each criterion
+        st.markdown("**Visual Score Breakdown:**")
+        for cs in score.criteria_scores:
+            col1, col2 = st.columns([1, 3])
+            with col1:
+                st.write(f"**{cs.name}**")
+                st.caption(f"Weight: {cs.weight}%")
+            with col2:
+                # Progress bar
+                st.progress(cs.percentage / 100)
+                st.caption(f"{cs.raw_score}/{cs.max_score} ({cs.percentage:.0f}%) → {cs.weighted_score:.2f} points")
+
+        # PPI breakdown if available
+        if ppi:
+            st.markdown("---")
+            st.markdown("**PPI Breakdown:**")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Consistency", f"{ppi.consistency_score:.1f}%")
+            with col2:
+                st.metric("Quality", f"{ppi.quality_score:.1f}%")
+            with col3:
+                st.metric("Risk Penalty", f"-{ppi.risk_penalty:.1f}")
+
+    with tab3:
+        # Gap analysis
+        if gaps:
+            st.markdown(f"**Gap Analysis** (Potential improvement: +{gaps.max_potential_improvement:.2f} points)")
+
+            if gaps.critical_gaps:
+                st.error(f"🔴 **Critical Gaps** ({len(gaps.critical_gaps)})")
+                for g in gaps.critical_gaps:
+                    st.write(f"  • {g.name}: {g.percentage:.0f}% (need +{g.gap_to_threshold:.0f}% to reach 70%)")
+
+            if gaps.high_gaps:
+                st.warning(f"🟠 **High Gaps** ({len(gaps.high_gaps)})")
+                for g in gaps.high_gaps:
+                    st.write(f"  • {g.name}: {g.percentage:.0f}% (need +{g.gap_to_threshold:.0f}% to reach 70%)")
+
+            if gaps.medium_gaps:
+                st.info(f"🟡 **Medium Gaps** ({len(gaps.medium_gaps)})")
+                for g in gaps.medium_gaps:
+                    st.write(f"  • {g.name}: {g.percentage:.0f}%")
+
+            if gaps.total_gap_count == 0:
+                st.success("✅ No significant gaps identified! All criteria at 70% or above.")
+
+            # Priority improvements
+            priority_gaps = gaps.get_priority_gaps(3)
+            if priority_gaps:
+                st.markdown("---")
+                st.markdown("**Priority Improvements:**")
+                for i, g in enumerate(priority_gaps, 1):
+                    st.write(f"{i}. **{g.name}** (Weight: {g.weight}%)")
+                    st.caption(f"   Potential gain: +{g.potential_weighted_gain:.2f} weighted points")
+        else:
+            st.info("Gap analysis not available.")
+
+    with tab4:
+        # Detailed justifications and evidence
+        st.markdown("**Detailed Justifications:**")
+        for cs in score.criteria_scores:
+            with st.expander(f"📝 {cs.name} ({cs.raw_score}/{cs.max_score})"):
+                st.markdown("**Justification:**")
+                st.write(cs.justification)
+                st.markdown("**Evidence:**")
+                st.write(cs.evidence)
+
+        # Risks section
+        if score.risks:
+            st.markdown("---")
+            st.markdown("**Identified Risks:**")
+            for risk in score.risks:
+                st.warning(f"⚠️ {risk}")
+
+        # Overall summary
+        st.markdown("---")
+        st.markdown("**Overall Summary:**")
+        st.info(score.overall_summary)
+
+        # Relative performance
+        if relative:
+            st.markdown("---")
+            st.markdown("**Relative Performance:**")
+            col1, col2 = st.columns(2)
+            with col1:
+                if relative.relative_strengths:
+                    st.success(f"**Strengths:** {', '.join(relative.relative_strengths)}")
+            with col2:
+                if relative.relative_weaknesses:
+                    st.error(f"**Weaknesses:** {', '.join(relative.relative_weaknesses)}")
 
 
 def run_evaluation(suppliers_data: list, criteria: list) -> PipelineResult:
