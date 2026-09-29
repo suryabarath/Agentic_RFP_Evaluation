@@ -98,10 +98,11 @@ def display_supplier_scorecard(supplier_result, benchmarks=None):
         if relative:
             st.metric("Rank", f"#{relative.rank}", delta=f"{relative.percentile:.0f}th %ile")
     with col4:
-        st.metric("Risks", len(score.risks), delta="identified")
+        warning_count = len(supplier_result.validation_warnings) if supplier_result.validation_warnings else 0
+        st.metric("Warnings", warning_count, delta="⚠️" if warning_count > 0 else "✓")
 
     # Tabs for different views
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 Scores", "📈 Visual", "🔍 Gaps", "📋 Details"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Scores", "📈 Visual", "🔍 Gaps", "📋 Details", "⚠️ Warnings"])
 
     with tab1:
         # Criteria breakdown table
@@ -225,6 +226,72 @@ def display_supplier_scorecard(supplier_result, benchmarks=None):
             with col2:
                 if relative.relative_weaknesses:
                     st.error(f"**Weaknesses:** {', '.join(relative.relative_weaknesses)}")
+
+    with tab5:
+        # Validation warnings
+        warnings = supplier_result.validation_warnings if supplier_result.validation_warnings else []
+
+        if warnings:
+            st.markdown(f"**Validation Warnings** ({len(warnings)} total)")
+            st.caption("These warnings indicate issues found during LLM response validation.")
+
+            # Group warnings by type
+            warning_types = {}
+            for w in warnings:
+                w_type = w.get('type', 'unknown')
+                if w_type not in warning_types:
+                    warning_types[w_type] = []
+                warning_types[w_type].append(w)
+
+            # Display by type with appropriate styling
+            for w_type, type_warnings in warning_types.items():
+                # Choose icon based on warning type
+                icon_map = {
+                    'missing_field': '📝',
+                    'missing_criterion': '❓',
+                    'score_adjusted': '🔧',
+                    'invalid_score': '⚠️',
+                    'missing_justification': '📄',
+                    'missing_evidence': '🔍',
+                    'duplicate_criterion': '👥',
+                    'validation_error': '❌',
+                    'unknown_criterion': '❔'
+                }
+                icon = icon_map.get(w_type, '⚠️')
+
+                with st.expander(f"{icon} {w_type.replace('_', ' ').title()} ({len(type_warnings)})", expanded=True):
+                    for w in type_warnings:
+                        message = w.get('message', 'No message')
+                        criterion_id = w.get('criterion_id')
+                        if criterion_id:
+                            st.write(f"• **Criterion {criterion_id}:** {message}")
+                        else:
+                            st.write(f"• {message}")
+
+            # Impact assessment
+            st.markdown("---")
+            st.markdown("**Impact Assessment:**")
+
+            critical_types = ['validation_error', 'missing_criterion', 'invalid_score']
+            critical_count = sum(len(warning_types.get(t, [])) for t in critical_types)
+            minor_count = len(warnings) - critical_count
+
+            col1, col2 = st.columns(2)
+            with col1:
+                if critical_count > 0:
+                    st.error(f"🔴 **Critical:** {critical_count} (may affect scoring)")
+                else:
+                    st.success("🟢 **Critical:** 0")
+            with col2:
+                if minor_count > 0:
+                    st.warning(f"🟡 **Minor:** {minor_count} (informational)")
+                else:
+                    st.success("🟢 **Minor:** 0")
+
+        else:
+            st.success("✅ **No validation warnings!**")
+            st.write("The LLM response passed all validation checks without any issues.")
+            st.balloons()
 
 
 def run_evaluation(suppliers_data: list, criteria: list) -> PipelineResult:
