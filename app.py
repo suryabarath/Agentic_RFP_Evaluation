@@ -68,7 +68,7 @@ def render_ai_config_sidebar():
         st.sidebar.markdown("""
         <div style="border-left: 4px solid #6366f1; padding: 10px; background-color: #f8f9fa; margin: 10px 0;">
             <span style="color: #6366f1; font-size: 12px; font-weight: bold;">MODE</span><br>
-            <span style="font-size: 16px; font-weight: bold;">:test_tube: Offline Mode</span><br>
+            <span style="font-size: 16px; font-weight: bold;">Offline Mode</span><br>
             <span style="color: #666; font-size: 13px;">Uses simulated mock evaluations.</span>
         </div>
         """, unsafe_allow_html=True)
@@ -76,7 +76,7 @@ def render_ai_config_sidebar():
         st.sidebar.markdown("""
         <div style="border-left: 4px solid #6366f1; padding: 10px; background-color: #f8f9fa; margin: 10px 0;">
             <span style="color: #6366f1; font-size: 12px; font-weight: bold;">MODE</span><br>
-            <span style="font-size: 16px; font-weight: bold;">:large_blue_circle: Live Mode</span><br>
+            <span style="font-size: 16px; font-weight: bold;">Live Mode</span><br>
             <span style="color: #666; font-size: 13px;">Calls a real LLM with your key.</span>
         </div>
         """, unsafe_allow_html=True)
