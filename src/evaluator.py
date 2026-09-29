@@ -1,23 +1,24 @@
 """
 LLM Evaluator Module
 
-Handles communication with the OpenAI API for evaluating supplier proposals.
+Handles communication with LLM APIs (OpenAI and Anthropic) for evaluating supplier proposals.
 Includes mock mode for development without API credits.
 """
 
 import json
 import random
 import hashlib
+from typing import Optional, Dict, Any, List, Union
+
 from openai import OpenAI
-from typing import Optional, Dict, Any, List
+import anthropic
 
 from src.config import config
-from src.schemas import SupplierEvaluation
 
 
 class LLMEvaluator:
     """
-    Evaluates supplier proposals using OpenAI's API.
+    Evaluates supplier proposals using LLM APIs (OpenAI or Anthropic).
 
     Usage:
         evaluator = LLMEvaluator()
@@ -28,7 +29,8 @@ class LLMEvaluator:
     def __init__(self):
         """Initialize the evaluator with configuration."""
         self.config = config
-        self._client: Optional[OpenAI] = None
+        self._openai_client: Optional[OpenAI] = None
+        self._anthropic_client: Optional[anthropic.Anthropic] = None
 
     def is_ready(self) -> bool:
         """Check if the evaluator is properly configured (or in mock mode)."""
@@ -44,13 +46,22 @@ class LLMEvaluator:
         status['mode'] = 'MOCK' if self.is_mock_mode() else 'LIVE'
         return status
 
-    def _get_client(self) -> OpenAI:
+    def _get_openai_client(self) -> OpenAI:
         """Get or create the OpenAI client."""
-        if self._client is None:
-            if not self.is_ready():
-                raise ValueError("LLM is not configured. Please set OPENAI_API_KEY in .env file.")
-            self._client = OpenAI(api_key=self.config.OPENAI_API_KEY)
-        return self._client
+        if self._openai_client is None:
+            self._openai_client = OpenAI(api_key=self.config.OPENAI_API_KEY)
+        return self._openai_client
+
+    def _get_anthropic_client(self) -> anthropic.Anthropic:
+        """Get or create the Anthropic client."""
+        if self._anthropic_client is None:
+            self._anthropic_client = anthropic.Anthropic(api_key=self.config.ANTHROPIC_API_KEY)
+        return self._anthropic_client
+
+    def reset_clients(self):
+        """Reset API clients (called when configuration changes)."""
+        self._openai_client = None
+        self._anthropic_client = None
 
     def evaluate(
         self,
@@ -74,7 +85,7 @@ class LLMEvaluator:
             Exception: If API call fails
         """
         if not self.is_ready():
-            raise ValueError("LLM is not configured. Please set OPENAI_API_KEY or enable USE_MOCK_LLM in .env file.")
+            raise ValueError("LLM is not configured. Please configure API key or enable offline mode.")
 
         # Use mock mode if enabled
         if self.is_mock_mode():
@@ -83,11 +94,18 @@ class LLMEvaluator:
         # Build the prompt
         prompt = self._build_prompt(proposal_text, criteria, supplier_name)
 
-        # Call the API
-        client = self._get_client()
+        # Route to appropriate provider
+        if self.config.PROVIDER == "anthropic":
+            return self._evaluate_anthropic(prompt)
+        else:
+            return self._evaluate_openai(prompt)
+
+    def _evaluate_openai(self, prompt: str) -> Dict[str, Any]:
+        """Evaluate using OpenAI API."""
+        client = self._get_openai_client()
 
         response = client.chat.completions.create(
-            model=self.config.OPENAI_MODEL,
+            model=self.config.MODEL,
             messages=[
                 {
                     "role": "system",
@@ -100,18 +118,50 @@ class LLMEvaluator:
             ],
             max_tokens=self.config.MAX_TOKENS,
             temperature=self.config.TEMPERATURE,
-            response_format={"type": "json_object"}  # Ensure JSON response
+            response_format={"type": "json_object"}
         )
 
-        # Extract the response content
         response_text = response.choices[0].message.content
 
-        # Parse JSON
         try:
             result = json.loads(response_text)
             return result
         except json.JSONDecodeError as e:
             raise ValueError(f"LLM returned invalid JSON: {e}")
+
+    def _evaluate_anthropic(self, prompt: str) -> Dict[str, Any]:
+        """Evaluate using Anthropic API."""
+        client = self._get_anthropic_client()
+
+        response = client.messages.create(
+            model=self.config.MODEL,
+            max_tokens=self.config.MAX_TOKENS,
+            system=self._get_system_prompt(),
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt + "\n\nRespond with ONLY valid JSON, no markdown code blocks."
+                }
+            ]
+        )
+
+        response_text = response.content[0].text
+
+        # Clean up response if needed (remove markdown code blocks)
+        if response_text.startswith("```"):
+            lines = response_text.split("\n")
+            # Remove first and last lines if they are code blocks
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines[-1].strip() == "```":
+                lines = lines[:-1]
+            response_text = "\n".join(lines)
+
+        try:
+            result = json.loads(response_text)
+            return result
+        except json.JSONDecodeError as e:
+            raise ValueError(f"LLM returned invalid JSON: {e}\nResponse: {response_text[:500]}")
 
     def _mock_evaluate(
         self,
@@ -328,29 +378,50 @@ REMINDERS:
 
     def test_connection(self) -> tuple:
         """
-        Test the connection to the OpenAI API.
+        Test the connection to the configured LLM API.
 
         Returns:
             tuple: (success: bool, message: str)
         """
-        if not self.is_ready():
+        if self.is_mock_mode():
+            return True, "Mock mode enabled - no API connection needed"
+
+        if not self.config.is_configured():
             is_valid, error = self.config.validate()
-            return False, error
+            return False, error or "API key not configured"
 
         try:
-            client = self._get_client()
-
-            # Make a minimal API call to test
-            response = client.chat.completions.create(
-                model=self.config.OPENAI_MODEL,
-                messages=[{"role": "user", "content": "Say 'OK' if you receive this."}],
-                max_tokens=10
-            )
-
-            return True, f"Connected successfully! Model: {self.config.OPENAI_MODEL}"
+            if self.config.PROVIDER == "anthropic":
+                return self._test_anthropic()
+            else:
+                return self._test_openai()
 
         except Exception as e:
             return False, f"Connection failed: {str(e)}"
+
+    def _test_openai(self) -> tuple:
+        """Test OpenAI API connection."""
+        client = self._get_openai_client()
+
+        response = client.chat.completions.create(
+            model=self.config.MODEL,
+            messages=[{"role": "user", "content": "Say 'OK' if you receive this."}],
+            max_tokens=10
+        )
+
+        return True, f"Connected to OpenAI! Model: {self.config.MODEL}"
+
+    def _test_anthropic(self) -> tuple:
+        """Test Anthropic API connection."""
+        client = self._get_anthropic_client()
+
+        response = client.messages.create(
+            model=self.config.MODEL,
+            max_tokens=10,
+            messages=[{"role": "user", "content": "Say 'OK' if you receive this."}]
+        )
+
+        return True, f"Connected to Anthropic! Model: {self.config.MODEL}"
 
 
 # Create a singleton instance
@@ -364,11 +435,11 @@ if __name__ == "__main__":
 
     status = evaluator.get_status()
 
+    print(f"Provider: {status.get('provider_name', 'Unknown')}")
     print(f"API Key Set: {status['api_key_set']}")
     print(f"API Key Preview: {status['api_key_preview']}")
     print(f"Model: {status['model']}")
-    print(f"Max Tokens: {status['max_tokens']}")
-    print(f"Temperature: {status['temperature']}")
+    print(f"Mode: {status['mode']}")
     print()
 
     if evaluator.is_ready():
@@ -382,9 +453,4 @@ if __name__ == "__main__":
             print(f"✗ {message}")
     else:
         print("✗ Evaluator is not ready")
-        print(f"  Error: {status['error']}")
-        print()
-        print("To configure:")
-        print("  1. Get an API key from https://platform.openai.com/api-keys")
-        print("  2. Open .env file in the project root")
-        print("  3. Replace 'your_openai_api_key_here' with your actual key")
+        print(f"  Error: {status.get('error', 'Unknown error')}")

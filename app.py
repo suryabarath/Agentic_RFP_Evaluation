@@ -18,7 +18,7 @@ from src.database import (
 from src.pdf_tool import extract_text_from_uploaded_file, get_pdf_info, validate_pdf
 from src.evaluator import evaluator
 from src.orchestrator import Orchestrator, SupplierInput, PipelineResult
-from src.config import config
+from src.config import config, PROVIDERS
 from src.export import export_full_report, export_summary, export_supplier_scorecard, to_json_string
 
 # =============================================================================
@@ -29,6 +29,118 @@ st.set_page_config(
     page_icon="📋",
     layout="wide"
 )
+
+# =============================================================================
+# AI CONFIGURATION SIDEBAR
+# =============================================================================
+
+def render_ai_config_sidebar():
+    """Render the AI Configuration section in the sidebar."""
+
+    # Initialize session state for AI config
+    if 'ai_offline_mode' not in st.session_state:
+        st.session_state.ai_offline_mode = config.USE_MOCK_LLM
+    if 'ai_provider' not in st.session_state:
+        st.session_state.ai_provider = config.PROVIDER
+    if 'ai_model' not in st.session_state:
+        st.session_state.ai_model = config.MODEL
+    if 'ai_api_key' not in st.session_state:
+        st.session_state.ai_api_key = config.get_api_key()
+
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### :gear: AI Configuration")
+
+    # Offline mode checkbox
+    offline_mode = st.sidebar.checkbox(
+        "Offline demo mode (no API key, no cost)",
+        value=st.session_state.ai_offline_mode,
+        help="Enable this for testing without an API key. Uses simulated evaluations."
+    )
+
+    # Update session state and config
+    if offline_mode != st.session_state.ai_offline_mode:
+        st.session_state.ai_offline_mode = offline_mode
+        config.set_runtime_config(use_mock=offline_mode)
+        evaluator.reset_clients()
+
+    # Mode indicator box
+    if offline_mode:
+        st.sidebar.markdown("""
+        <div style="border-left: 4px solid #6366f1; padding: 10px; background-color: #f8f9fa; margin: 10px 0;">
+            <span style="color: #6366f1; font-size: 12px; font-weight: bold;">MODE</span><br>
+            <span style="font-size: 16px; font-weight: bold;">:test_tube: Offline Mode</span><br>
+            <span style="color: #666; font-size: 13px;">Uses simulated mock evaluations.</span>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.sidebar.markdown("""
+        <div style="border-left: 4px solid #6366f1; padding: 10px; background-color: #f8f9fa; margin: 10px 0;">
+            <span style="color: #6366f1; font-size: 12px; font-weight: bold;">MODE</span><br>
+            <span style="font-size: 16px; font-weight: bold;">:large_blue_circle: Live Mode</span><br>
+            <span style="color: #666; font-size: 13px;">Calls a real LLM with your key.</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Provider selection
+        provider_names = {k: v['name'] for k, v in PROVIDERS.items()}
+        provider_options = list(provider_names.keys())
+        provider_labels = list(provider_names.values())
+
+        current_provider_idx = provider_options.index(st.session_state.ai_provider) if st.session_state.ai_provider in provider_options else 0
+
+        selected_provider_label = st.sidebar.selectbox(
+            "Provider",
+            options=provider_labels,
+            index=current_provider_idx
+        )
+
+        # Get provider key from label
+        selected_provider = provider_options[provider_labels.index(selected_provider_label)]
+
+        # Update if provider changed
+        if selected_provider != st.session_state.ai_provider:
+            st.session_state.ai_provider = selected_provider
+            # Set default model for new provider
+            st.session_state.ai_model = PROVIDERS[selected_provider]['default_model']
+            config.set_runtime_config(provider=selected_provider, model=st.session_state.ai_model)
+            evaluator.reset_clients()
+            st.rerun()
+
+        # Model input
+        provider_models = PROVIDERS.get(selected_provider, {}).get('models', [])
+        model = st.sidebar.selectbox(
+            "Model",
+            options=provider_models,
+            index=provider_models.index(st.session_state.ai_model) if st.session_state.ai_model in provider_models else 0
+        )
+
+        if model != st.session_state.ai_model:
+            st.session_state.ai_model = model
+            config.set_runtime_config(model=model)
+
+        # API Key input
+        api_key = st.sidebar.text_input(
+            "API Key",
+            value=st.session_state.ai_api_key,
+            type="password",
+            help=f"Your {selected_provider_label} API key. Get one from the provider's website."
+        )
+
+        if api_key != st.session_state.ai_api_key:
+            st.session_state.ai_api_key = api_key
+            config.set_runtime_config(api_key=api_key)
+            evaluator.reset_clients()
+
+        # Test Connection button
+        if st.sidebar.button(":zap: Test Connection", use_container_width=True):
+            with st.sidebar:
+                with st.spinner("Testing connection..."):
+                    success, message = evaluator.test_connection()
+                    if success:
+                        st.success(message)
+                    else:
+                        st.error(message)
+
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -345,9 +457,8 @@ def main():
         label_visibility="collapsed"
     )
 
-    # Show mode indicator
-    mode = "🔬 MOCK MODE" if config.USE_MOCK_LLM else "🤖 LIVE MODE"
-    st.sidebar.markdown(f"**Mode:** {mode}")
+    # Render AI Configuration sidebar
+    render_ai_config_sidebar()
 
     # Load criteria
     try:

@@ -10,8 +10,9 @@ pydantic==2.10.3
 # Environment Variables
 python-dotenv==1.0.1
 
-# LLM Integration (OpenAI API)
+# LLM Integration (OpenAI and Anthropic APIs)
 openai==1.57.4
+anthropic==0.40.0
 
 # Additional utilities
 requests==2.32.3

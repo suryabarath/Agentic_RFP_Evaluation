@@ -27,6 +27,10 @@ def create_tables():
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
+    # Enable WAL mode for better concurrency (important for Streamlit)
+    cursor.execute("PRAGMA journal_mode=WAL")
+    cursor.execute("PRAGMA busy_timeout=30000")
+
     # Table 1: evaluation_criteria
     # Stores the criteria used to evaluate suppliers
     cursor.execute("""
