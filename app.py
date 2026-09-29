@@ -31,6 +31,250 @@ st.set_page_config(
 )
 
 # =============================================================================
+# CUSTOM CSS STYLING
+# =============================================================================
+st.markdown("""
+<style>
+    /* Main container styling */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    /* Header styling */
+    h1 {
+        color: #1e293b;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    h2, h3 {
+        color: #334155;
+        font-weight: 600;
+    }
+
+    /* Card styling for metrics and info boxes */
+    .metric-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+
+    /* Styled container */
+    .styled-container {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        margin: 1rem 0;
+    }
+
+    /* Status badges */
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .status-success {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-warning {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-error {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* Rank badges */
+    .rank-1 {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 700;
+    }
+
+    .rank-2 {
+        background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 700;
+    }
+
+    .rank-3 {
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 700;
+    }
+
+    /* Score display */
+    .score-display {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .score-label {
+        font-size: 0.875rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Sidebar styling */
+    section[data-testid="stSidebar"] {
+        background-color: #f8fafc;
+    }
+
+    section[data-testid="stSidebar"] .stMarkdown h3 {
+        color: #1e293b;
+    }
+
+    /* Button styling */
+    .stButton > button {
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    /* DataFrames */
+    .stDataFrame {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        font-weight: 600;
+        color: #334155;
+    }
+
+    /* Progress bar */
+    .stProgress > div > div {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+
+    /* Tabs styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 8px;
+        padding: 8px 16px;
+    }
+
+    /* File uploader */
+    .stFileUploader {
+        border-radius: 8px;
+    }
+
+    /* Metrics */
+    [data-testid="stMetricValue"] {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    [data-testid="stMetricLabel"] {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    /* Divider */
+    hr {
+        margin: 1.5rem 0;
+        border: none;
+        height: 1px;
+        background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+    }
+
+    /* Footer */
+    .footer {
+        text-align: center;
+        padding: 2rem 0;
+        color: #64748b;
+        font-size: 0.875rem;
+    }
+
+    /* Hero section */
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    /* Feature cards */
+    .feature-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        height: 100%;
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-desc {
+        font-size: 0.9rem;
+        color: #64748b;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# =============================================================================
 # AI CONFIGURATION SIDEBAR
 # =============================================================================
 
@@ -158,13 +402,39 @@ def display_leaderboard(result: PipelineResult):
         st.warning("No ranking data available.")
         return
 
-    st.subheader("🏆 Final Ranking")
+    st.markdown("### 🏆 Final Ranking")
+
+    # Show winner card if available
+    if result.ranking.rankings:
+        winner = result.ranking.rankings[0]
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 12px; padding: 1.5rem; color: white; margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-size: 0.875rem; opacity: 0.9;">WINNER</div>
+                    <div style="font-size: 1.5rem; font-weight: 700;">{winner.supplier_name}</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 2rem; font-weight: 700;">{winner.weighted_score:.1f}</div>
+                    <div style="font-size: 0.875rem; opacity: 0.9;">Score</div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
     # Create leaderboard dataframe
     leaderboard_data = []
     for r in result.ranking.rankings:
+        rank_display = f"#{r.rank}"
+        if r.rank == 1:
+            rank_display = "🥇 #1"
+        elif r.rank == 2:
+            rank_display = "🥈 #2"
+        elif r.rank == 3:
+            rank_display = "🥉 #3"
+
         leaderboard_data.append({
-            'Rank': f"#{r.rank}" + (" 🏆" if r.rank == 1 else ""),
+            'Rank': rank_display,
             'Supplier': r.supplier_name,
             'Score': f"{r.weighted_score:.2f}",
             'PPI': f"{r.ppi_score:.2f}",
@@ -481,32 +751,72 @@ def main():
 
 def show_home_page(criteria, total_weight):
     """Display the home page."""
-    st.title("📋 Agentic RFP Evaluation System")
-    st.markdown("---")
 
-    st.write("""
-    Welcome to the **RFP Evaluation and Supplier Ranking System**!
+    # Hero Section
+    st.markdown("""
+    <div class="hero-section">
+        <div class="hero-title">Agentic RFP Evaluation System</div>
+        <div class="hero-subtitle">AI-powered supplier proposal evaluation and ranking platform</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    This application helps you:
-    - 📤 Upload supplier proposal PDFs
-    - 🤖 Evaluate proposals using AI (or mock mode)
-    - 📊 Score and rank suppliers automatically
-    - 📁 Save and review historical evaluations
-    """)
+    # Feature Cards
+    col1, col2, col3, col4 = st.columns(4)
 
-    # Quick stats
+    with col1:
+        st.markdown("""
+        <div class="feature-card">
+            <div class="feature-icon">📤</div>
+            <div class="feature-title">Upload PDFs</div>
+            <div class="feature-desc">Upload supplier proposal documents for analysis</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("""
+        <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <div class="feature-title">AI Analysis</div>
+            <div class="feature-desc">Evaluate proposals using advanced LLM technology</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col3:
+        st.markdown("""
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <div class="feature-title">Smart Scoring</div>
+            <div class="feature-desc">Automatic scoring with weighted criteria</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col4:
+        st.markdown("""
+        <div class="feature-card">
+            <div class="feature-icon">🏆</div>
+            <div class="feature-title">Rankings</div>
+            <div class="feature-desc">Compare and rank suppliers objectively</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Quick Stats
+    runs = get_all_runs()
+
+    st.markdown("### Quick Overview")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Active Criteria", len(criteria))
+        st.metric("Active Criteria", len(criteria), help="Number of evaluation criteria configured")
     with col2:
-        st.metric("Total Weight", f"{total_weight}%")
+        st.metric("Total Weight", f"{total_weight}%", help="Sum of all criteria weights")
     with col3:
-        runs = get_all_runs()
-        st.metric("Past Evaluations", len(runs))
+        st.metric("Past Evaluations", len(runs), help="Number of completed evaluation runs")
 
     # Criteria overview
     st.markdown("---")
-    st.subheader("📊 Evaluation Criteria")
+    st.markdown("### Evaluation Criteria")
+    st.caption("Proposals are evaluated against these weighted criteria")
 
     if criteria:
         df = pd.DataFrame(criteria)
@@ -519,14 +829,41 @@ def show_home_page(criteria, total_weight):
         })
         st.dataframe(df, use_container_width=True, hide_index=True)
 
+    # Getting Started
+    st.markdown("---")
+    st.markdown("### Getting Started")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("""
+        <div class="info-card">
+            <strong>Step 1: Configure AI</strong><br>
+            <span style="color: #64748b;">Choose between Offline (demo) mode or Live mode with your API key in the sidebar.</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("""
+        <div class="info-card">
+            <strong>Step 2: Start Evaluation</strong><br>
+            <span style="color: #64748b;">Go to "New Evaluation" to upload supplier PDFs and run the analysis.</span>
+        </div>
+        """, unsafe_allow_html=True)
+
     # Footer
     st.markdown("---")
-    st.caption("Built for IIT Roorkee - Agentic AI Mini Project")
+    st.markdown("""
+    <div class="footer">
+        Built for <strong>IIT Roorkee</strong> • Agentic AI Mini Project
+    </div>
+    """, unsafe_allow_html=True)
 
 
 def show_evaluation_page(criteria):
     """Display the new evaluation page."""
-    st.title("📤 New Supplier Evaluation")
+    st.markdown("## 📤 New Supplier Evaluation")
+    st.caption("Upload supplier proposals and run AI-powered evaluation")
     st.markdown("---")
 
     # Initialize session state
@@ -656,11 +993,18 @@ def show_evaluation_page(criteria):
 
 def show_results_page():
     """Display the results page."""
-    st.title("🏆 Evaluation Results")
+    st.markdown("## 🏆 Evaluation Results")
+    st.caption("View detailed results from the most recent evaluation")
     st.markdown("---")
 
     if 'evaluation_result' not in st.session_state or st.session_state.evaluation_result is None:
-        st.info("No recent evaluation. Run a new evaluation or view history.")
+        st.markdown("""
+        <div class="info-card" style="text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+            <strong>No Recent Evaluation</strong><br>
+            <span style="color: #64748b;">Run a new evaluation or view history to see results.</span>
+        </div>
+        """, unsafe_allow_html=True)
         return
 
     result = st.session_state.evaluation_result
@@ -767,14 +1111,23 @@ def show_results_page():
 
 def show_history_page():
     """Display evaluation history."""
-    st.title("📜 Evaluation History")
+    st.markdown("## 📜 Evaluation History")
+    st.caption("View all past evaluation runs and their results")
     st.markdown("---")
 
     runs = get_all_runs()
 
     if not runs:
-        st.info("No evaluation history yet. Run your first evaluation!")
+        st.markdown("""
+        <div class="info-card" style="text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📁</div>
+            <strong>No History Yet</strong><br>
+            <span style="color: #64748b;">Run your first evaluation to see it here.</span>
+        </div>
+        """, unsafe_allow_html=True)
         return
+
+    st.markdown(f"**{len(runs)} evaluation(s) found**")
 
     # Display runs
     for run in runs:
