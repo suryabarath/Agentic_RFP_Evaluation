@@ -44,7 +44,8 @@ def get_db_connection() -> sqlite3.Connection:
         )
 
     # Create connection with Row factory for easier column access
-    conn = sqlite3.connect(db_path)
+    # timeout=30 prevents "database is locked" errors in concurrent access
+    conn = sqlite3.connect(db_path, timeout=30)
     conn.row_factory = sqlite3.Row
     return conn
 
