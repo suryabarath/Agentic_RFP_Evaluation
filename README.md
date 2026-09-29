@@ -1,339 +1,294 @@
-# Agentic RFP Evaluation and Supplier Ranking
+# RFP Proposal Evaluation System
 
-An AI-powered application that reads supplier RFP proposals, scores them against
-configurable criteria, benchmarks suppliers against their peers, and produces an
-explainable, deterministic final leaderboard.
+A Streamlit-based web application that automates supplier proposal evaluation using Large Language Models. Upload PDF proposals, get AI-generated scores, and view ranked results with detailed analytics.
 
-**Built for:** IIT Roorkee Agentic AI Programme — classroom mini project.
+**Project:** IIT Roorkee — Agentic AI Mini Project
 
-## The one rule everything else follows
+---
 
-> The LLM may judge proposal content. It must never decide arithmetic, benchmarks,
-> tie-breaks, or rank.
+## Core Principle
 
-Concretely: the LLM returns a score (0–10) and a justification with evidence per criterion,
-as JSON. Every weighted score, benchmark, gap analysis, relative percentage, Peer Performance
-Index (PPI), tie-break, and rank is computed by pure Python in `src/scorer.py`, `src/ppi.py`,
-and `src/ranking.py` — files that have no LLM client, no API import, and cannot call one.
-That is enforced by the module architecture, not just by convention.
+This system separates **qualitative judgment** from **quantitative computation**:
 
-## Quick start
+- **AI does**: Read proposals, assess quality, provide scores (0-10) with justifications
+- **Python does**: Calculate weighted totals, compare suppliers, break ties, assign ranks
+
+No mathematical operation depends on AI output interpretation. Scoring formulas, benchmarking logic, and ranking algorithms are implemented in isolated Python modules with no LLM dependencies.
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Python 3.8+
+- pip package manager
+
+### Installation
 
 ```bash
-# Clone and setup
 git clone https://github.com/suryabarath/Agentic_RFP_Evaluation.git
 cd Agentic_RFP_Evaluation
 
-# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate    # Windows: venv\Scripts\activate
 
-# Install dependencies
 pip install -r requirements.txt
-
-# Initialize database
 python database/init_db.py
-
-# Run the application
 streamlit run app.py
 ```
 
-Open the app, tick **"Offline demo mode"** in the sidebar (on by default), upload
-supplier PDFs, and click **Run Evaluation**. The whole pipeline runs with zero API
-calls and zero cost, using simulated realistic evaluation results.
+### First Run
 
-To use a real LLM instead, untick offline mode, pick a provider (Anthropic or OpenAI),
-paste an API key (kept only in browser session memory, never written to disk), and
-click **Test Connection** before evaluating.
+1. Open `http://localhost:8501` in your browser
+2. The sidebar shows **AI Configuration** — leave "Offline demo mode" checked for testing
+3. Go to **New Evaluation**, upload PDFs, and click **Run Evaluation**
+4. View rankings and detailed scorecards
 
-Run the test suite:
-```bash
-pytest -q            # 39 tests: scorer, PPI, ranking, and pipeline
-python test_data/run_e2e_test.py   # runs the full pipeline, prints the leaderboard
-```
+### Using Real AI
 
-## Agentic design
+1. Uncheck "Offline demo mode" in sidebar
+2. Select provider: **Anthropic** or **OpenAI**
+3. Enter your API key
+4. Click **Test Connection** to verify
+5. Run evaluation — real AI analyzes your documents
 
-| Component | Responsibility | Lives in |
-|-----------|----------------|----------|
-| Orchestrator | Controls the workflow, calls modules in order, handles errors | `src/orchestrator.py` |
-| PDF Tool | Extracts clean text from uploaded PDFs | `src/pdf_tool.py` |
-| Evaluator | Sends proposal to LLM, parses JSON response | `src/evaluator.py` |
-| Validator | Schema check, score clamping, warning collection | `src/validator.py` |
-| Scorer | Weighted score calculation per supplier | `src/scorer.py` |
-| Benchmarks | Best/worst/average across all suppliers | `src/benchmarks.py` |
-| Gap Analysis | Identifies improvement opportunities | `src/gaps.py` |
-| Relative Performance | Percentile and tier classification | `src/relative_performance.py` |
-| PPI Calculator | Composite performance index | `src/ppi.py` |
-| Ranking Engine | Deterministic ranking with tie-breaks | `src/ranking.py` |
+---
 
-**Why a plain Python orchestrator instead of a graph framework** (e.g., LangGraph):
-this workflow is a fixed pipeline — every run executes the same steps in the same
-order, it never re-plans itself. That is a DAG, not an autonomous agent deciding
-its own control flow. A graph framework would earn its keep if this workflow needed
-durable checkpoints, human-in-the-loop pauses, or dynamic re-planning — it doesn't.
+## How It Works
+
+### Processing Pipeline
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         EVALUATION PIPELINE                          │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  Upload PDFs ──► Extract Text ──► LLM Evaluation ──► Validation     │
-│                                                                      │
-│       ┌──────────────────────────────────────────────────────┐      │
-│       │                    For Each Supplier                  │      │
-│       │  Score ──► Benchmark ──► Gaps ──► Relative ──► PPI   │      │
-│       └──────────────────────────────────────────────────────┘      │
-│                                                                      │
-│  ──► Final Ranking ──► Persist to Database ──► Display Results      │
-│                                                                      │
-└─────────────────────────────────────────────────────────────────────┘
+PDF Upload → Text Extraction → AI Evaluation → Validation → Scoring
+                                                              ↓
+                                            Benchmarking ← Gap Analysis
+                                                              ↓
+                                            PPI Calculation → Ranking → Results
 ```
 
-## Database schema
+### Module Breakdown
 
-SQLite database with three core tables:
+| Module | Purpose |
+|--------|---------|
+| `src/pdf_tool.py` | Extracts readable text from PDF documents |
+| `src/evaluator.py` | Communicates with AI providers (Claude/GPT) |
+| `src/validator.py` | Checks AI responses for correctness |
+| `src/scorer.py` | Computes weighted scores from raw evaluations |
+| `src/benchmarks.py` | Calculates best/worst/average across suppliers |
+| `src/gaps.py` | Identifies where each supplier can improve |
+| `src/ppi.py` | Generates composite performance index |
+| `src/ranking.py` | Produces final ordered leaderboard |
+| `src/orchestrator.py` | Coordinates all modules in sequence |
 
-- **`evaluation_criteria`**: `criterion_id`, `name`, `description`, `weight`, `max_score`, `is_active`.
-  Weights must sum to 100%. The database is seeded with 5 default criteria.
+---
 
-- **`rfp_runs`**: `rfp_run_id`, `created_at`, `status`, `notes`.
-  Tracks each evaluation batch. Status: `pending` → `in_progress` → `completed`/`failed`.
+## Scoring System
 
-- **`supplier_results`**: One row per supplier per run — `supplier_name`, `absolute_score`,
-  `ppi`, `final_rank`, `result_json` (complete evaluation data), `validation_warnings`.
+### Criteria Weights
 
-## Evaluation criteria (seeded defaults)
+| Category | Weight | What's Evaluated |
+|----------|--------|------------------|
+| Technical Capability | 30% | System design, technology choices, scalability |
+| Implementation Plan | 20% | Project timeline, team structure, milestones |
+| Commercial Value | 20% | Pricing structure, cost breakdown, value proposition |
+| Security & Compliance | 20% | Data protection, certifications, audit readiness |
+| Support & Experience | 10% | Past projects, support availability, references |
 
-| Criterion | Weight | Max Score | Description |
-|-----------|--------|-----------|-------------|
-| Technical Capability | 30% | 10 | Architecture, integrations, scalability, technical fit |
-| Implementation Plan | 20% | 10 | Timeline, milestones, staffing, risk plan |
-| Commercial Value | 20% | 10 | Pricing clarity, total cost, assumptions |
-| Security & Compliance | 20% | 10 | Controls, certifications, privacy, auditability |
-| Support & Experience | 10% | 10 | Support model, similar projects, references |
+### Score Calculation
 
-Total weight: **100%** (required for valid scoring)
-
-## Formulas
-
-### Weighted Score Calculation
-
-```
-Criterion Weighted Score = (raw_score / max_score) × weight
-Total Weighted Score = Σ (criterion weighted scores)
-```
-
-**Worked example:**
-```
-Technical:      8/10 × 30 = 24.00
-Implementation: 7/10 × 20 = 14.00
-Commercial:     8/10 × 20 = 16.00
-Security:       9/10 × 20 = 18.00
-Support:        8/10 × 10 =  8.00
-─────────────────────────────────
-Total Weighted Score:      80.00
-```
-
-### PPI (Proposal Performance Index)
-
-The PPI is a composite metric that goes beyond raw scores:
+Each criterion receives a score from 0-10. The weighted total is computed as:
 
 ```
-PPI = (WeightedScore × 0.70) + (ConsistencyBonus × 0.15) + (QualityBonus × 0.15) - RiskPenalty
+Weighted Score = Σ (criterion_score ÷ 10) × criterion_weight
 ```
 
-Where:
-- **WeightedScore**: The total weighted score (0-100)
-- **ConsistencyBonus**: Rewards consistent performance across criteria (low variance)
-- **QualityBonus**: Based on validation quality (fewer warnings = higher bonus)
-- **RiskPenalty**: Deduction for identified risks (1 point per risk, max 10)
+**Example:**
+- Technical: 8/10 × 30% = 24 points
+- Implementation: 7/10 × 20% = 14 points
+- Commercial: 9/10 × 20% = 18 points
+- Security: 8/10 × 20% = 16 points
+- Support: 7/10 × 10% = 7 points
+- **Total: 79 points**
 
-**PPI Grades:**
-| Grade | PPI Range | Interpretation |
-|-------|-----------|----------------|
-| A | 90-100 | Excellent proposal |
-| B | 80-89 | Good proposal |
-| C | 70-79 | Adequate proposal |
-| D | 60-69 | Below average |
-| F | 0-59 | Poor proposal |
+### Performance Index (PPI)
 
-## Tie-break rules (deterministic)
+Beyond raw scores, PPI incorporates:
 
-When suppliers have the same weighted score, ties are broken in this order:
+| Factor | Weight | Description |
+|--------|--------|-------------|
+| Weighted Score | 70% | Primary scoring component |
+| Consistency | 15% | Rewards uniform performance across categories |
+| Data Quality | 15% | Based on validation warnings |
+| Risk Penalty | Deduction | -1 point per identified risk (max -10) |
 
-1. **Higher PPI Score** — composite quality wins
-2. **Fewer Risks** — lower risk count wins
-3. **Fewer Validation Warnings** — cleaner data wins
-4. **Higher score on top-weight criterion** — strongest on most important criterion
-5. **Alphabetical by supplier name** — final deterministic fallback
+**Grade Scale:**
+- **A**: 90+ (Exceptional)
+- **B**: 80-89 (Strong)
+- **C**: 70-79 (Acceptable)
+- **D**: 60-69 (Weak)
+- **F**: Below 60 (Poor)
 
-This ensures the same inputs **always** produce the same ranking.
+### Ranking Tiebreakers
 
-## LLM providers
+When weighted scores match, suppliers are ordered by:
 
-The application supports multiple LLM providers through a unified interface:
+1. PPI score (higher wins)
+2. Risk count (fewer wins)
+3. Warning count (fewer wins)
+4. Top criterion performance (higher wins)
+5. Alphabetical name (final fallback)
 
-| Provider | Models Available |
+---
+
+## Database Structure
+
+Three SQLite tables store all data:
+
+**evaluation_criteria**
+- Stores the five scoring categories
+- Each has name, description, weight percentage, and max score
+- Weights must total 100%
+
+**rfp_runs**
+- Records each evaluation session
+- Tracks status: pending → in_progress → completed/failed
+- Timestamps all operations
+
+**supplier_results**
+- One row per supplier per evaluation run
+- Contains final score, PPI, rank
+- Stores complete JSON with all evaluation details
+
+---
+
+## AI Provider Support
+
+### Available Providers
+
+| Provider | Supported Models |
 |----------|-----------------|
-| **Anthropic** | claude-sonnet-4, claude-opus-4, claude-3-5-sonnet, claude-3-5-haiku |
-| **OpenAI** | gpt-4o, gpt-4o-mini, gpt-4-turbo, gpt-3.5-turbo |
+| Anthropic | Claude Sonnet 4, Claude Opus 4, Claude 3.5 Sonnet, Claude 3.5 Haiku |
+| OpenAI | GPT-4o, GPT-4o Mini, GPT-4 Turbo, GPT-3.5 Turbo |
 
-Provider and model are selectable in the sidebar. API keys are stored in session
-memory only — never persisted to disk or database.
+### Configuration
 
-## Offline demo mode
+Set via sidebar UI or environment variables:
 
-Streamlit deployments and graded demos share one risk: an API outage, rate limit,
-or missing key shouldn't make the submission undemonstrable. The mock evaluator
-in `src/evaluator.py` returns realistic, deterministic evaluation JSON — same
-schema a real model returns, run through the identical Validation, Scoring, and
-Ranking pipeline.
+| Variable | Purpose |
+|----------|---------|
+| `LLM_PROVIDER` | `anthropic` or `openai` |
+| `ANTHROPIC_API_KEY` | Your Anthropic key |
+| `OPENAI_API_KEY` | Your OpenAI key |
+| `USE_MOCK_LLM` | `true` for offline testing |
 
-This lets the README demonstrate a real leaderboard, real scores, and real
-tie-break resolution with zero dependency on model or network availability.
-Untick "Offline demo mode" to use a live model.
+API keys entered in the UI are stored only in browser session memory — never saved to disk.
 
-## Validation & error handling
+---
 
-### Response validation
+## Offline Mode
 
-The validator (`src/validator.py`) ensures LLM responses are well-formed:
+For demonstrations and testing without API access:
 
-- **Schema validation**: All required fields present
-- **Score clamping**: Scores capped to `max_score` (never exceed maximum)
-- **Missing criteria**: Filled with score 0 and warning
-- **Evidence checking**: Justifications must meet minimum length
+- Generates realistic mock evaluations
+- Uses document content to vary scores (same PDF = same scores)
+- Runs through identical validation and ranking pipeline
+- Zero cost, zero network dependency
 
-Warnings are surfaced in the UI, never silently swallowed.
+This ensures the application remains fully demonstrable even without active API credentials.
 
-### Pipeline error handling
+---
 
-- One failed supplier does **not** sink the entire batch
-- Failed evaluations are logged with error details
-- Successful evaluations proceed to ranking
-- Status becomes `failed` only if database persistence fails
-
-## Testing
-
-```bash
-pytest -q
-```
-
-**39 tests** covering:
-- `test_scorer.py`: Weighted score calculations, edge cases
-- `test_ppi.py`: PPI formula, consistency scoring, grading
-- `test_ranking.py`: Deterministic ordering, tie-break rules
-
-```bash
-python test_data/run_e2e_test.py
-```
-
-Runs the full pipeline outside Streamlit (no browser needed), prints the leaderboard.
-
-## Folder structure
+## Project Layout
 
 ```
-Agentic_RFP_Evaluation/
-├── app.py                      # Streamlit web UI
-├── requirements.txt            # Python dependencies
-├── README.md                   # This file
+├── app.py                    # Main Streamlit application
+├── requirements.txt          # Package dependencies
 │
 ├── database/
-│   ├── init_db.py              # Database initialization & seeding
-│   └── rfp.db                  # SQLite database (generated)
+│   ├── init_db.py           # Creates tables and seeds data
+│   └── rfp.db               # SQLite file (auto-generated)
 │
 ├── src/
-│   ├── __init__.py
-│   ├── config.py               # Multi-provider configuration
-│   ├── database.py             # Database helper functions
-│   ├── pdf_tool.py             # PDF text extraction (PyMuPDF)
-│   ├── schemas.py              # Pydantic validation models
-│   ├── evaluator.py            # LLM evaluation (Anthropic/OpenAI)
-│   ├── validator.py            # Response validation & clamping
-│   ├── scorer.py               # Weighted score calculation
-│   ├── benchmarks.py           # Best/worst/average computation
-│   ├── gaps.py                 # Gap analysis per supplier
-│   ├── relative_performance.py # Percentile & tier classification
-│   ├── ppi.py                  # Proposal Performance Index
-│   ├── ranking.py              # Deterministic ranking engine
-│   ├── orchestrator.py         # Pipeline coordinator
-│   ├── export.py               # JSON export functions
-│   └── errors.py               # Custom exception hierarchy
+│   ├── config.py            # Provider and model settings
+│   ├── database.py          # Database query functions
+│   ├── pdf_tool.py          # PDF text extraction
+│   ├── schemas.py           # Data validation models
+│   ├── evaluator.py         # AI communication layer
+│   ├── validator.py         # Response verification
+│   ├── scorer.py            # Score computation
+│   ├── benchmarks.py        # Cross-supplier comparison
+│   ├── gaps.py              # Improvement identification
+│   ├── relative_performance.py  # Percentile calculation
+│   ├── ppi.py               # Performance index
+│   ├── ranking.py           # Leaderboard generation
+│   ├── orchestrator.py      # Pipeline controller
+│   ├── export.py            # JSON report generation
+│   └── errors.py            # Exception definitions
 │
 ├── tests/
-│   ├── conftest.py             # Pytest fixtures
-│   ├── test_scorer.py          # Scorer unit tests
-│   ├── test_ppi.py             # PPI unit tests
-│   └── test_ranking.py         # Ranking unit tests
+│   ├── test_scorer.py       # Scoring logic tests
+│   ├── test_ppi.py          # PPI calculation tests
+│   └── test_ranking.py      # Ranking algorithm tests
 │
 └── test_data/
-    ├── generate_test_pdfs.py   # Synthetic PDF generator
-    ├── run_e2e_test.py         # End-to-end pipeline test
-    └── *.pdf                   # Sample proposal PDFs
+    ├── generate_test_pdfs.py    # Creates sample PDFs
+    └── run_e2e_test.py          # Full pipeline test
 ```
 
-## Environment variables
+---
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `LLM_PROVIDER` | `anthropic` | LLM provider (`anthropic` or `openai`) |
-| `LLM_MODEL` | `claude-sonnet-4-20250514` | Model to use |
-| `ANTHROPIC_API_KEY` | - | Anthropic API key (for live mode) |
-| `OPENAI_API_KEY` | - | OpenAI API key (for live mode) |
-| `USE_MOCK_LLM` | `true` | Enable offline demo mode |
-| `MAX_TOKENS` | `4000` | Max tokens for LLM response |
-| `TEMPERATURE` | `0.2` | LLM temperature (lower = more deterministic) |
+## Running Tests
 
-## Assumptions & design decisions
+```bash
+# Unit tests (39 total)
+pytest -q
 
-1. **LLM judges content, Python computes numbers**: The LLM evaluates proposals
-   qualitatively; all arithmetic (scores, rankings, benchmarks) is deterministic Python.
+# End-to-end pipeline test
+python test_data/run_e2e_test.py
 
-2. **Criteria weights must sum to 100%**: Enforced at database seed time.
+# Generate sample PDFs
+python test_data/generate_test_pdfs.py
+```
 
-3. **Scores are 0-10 scale**: Configurable per criterion via `max_score`.
+---
 
-4. **API keys are session-only**: Never persisted to disk or database.
-   BYOK (Bring Your Own Key) model.
+## Technical Constraints
 
-5. **PDFs must be text-based**: Scanned/image-only PDFs will extract no text.
-   OCR is out of scope.
+**Current Scope:**
+- Text-based PDFs only (no OCR for scanned documents)
+- SQLite database (resets on cloud platform redeploys)
+- No user authentication system
+- Two AI providers (Anthropic, OpenAI)
 
-6. **Single-run evaluation**: No incremental re-evaluation. Each run is independent.
+**Design Choices:**
+- Session-only API key storage
+- Independent evaluation runs (no incremental updates)
+- Strict 100% weight requirement for criteria
+- Fixed 0-10 scoring scale
 
-## Known limitations
+---
 
-- **SQLite is file-based**: On Streamlit Community Cloud, the filesystem resets
-  on redeploy. Historical runs will not survive a redeploy.
+## Dependencies
 
-- **No OCR**: Image-based PDFs will fail to extract text. Use text-based PDFs.
+| Package | Version | Purpose |
+|---------|---------|---------|
+| streamlit | 1.39.0 | Web interface |
+| PyMuPDF | 1.24.13 | PDF processing |
+| pydantic | 2.10.3 | Data validation |
+| anthropic | 0.40.0 | Claude API client |
+| openai | 1.57.4 | GPT API client |
+| pytest | 8.3.4 | Testing framework |
 
-- **Provider abstraction**: Currently supports Anthropic and OpenAI. Adding a
-  third provider requires extending `src/evaluator.py`.
-
-- **No authentication**: The app has no user login. Suitable for demos, not
-  production multi-tenant use.
-
-## Tech stack
-
-| Component | Technology |
-|-----------|------------|
-| Web Framework | Streamlit 1.39 |
-| Database | SQLite 3 |
-| PDF Processing | PyMuPDF 1.24 |
-| Data Validation | Pydantic 2.10 |
-| LLM Integration | Anthropic SDK, OpenAI SDK |
-| Testing | pytest 8.3 |
+---
 
 ## License
 
-MIT License — See LICENSE file for details.
+MIT License
 
-## Acknowledgments
+---
 
-- **IIT Roorkee** — Agentic AI Programme
-- **Anthropic** — Claude API
-- **OpenAI** — GPT API
-- **Streamlit** — Web framework
-- **PyMuPDF** — PDF processing
+## Credits
+
+Developed for IIT Roorkee Agentic AI Programme
+
+Built with Streamlit, PyMuPDF, and Claude/GPT APIs
